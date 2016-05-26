@@ -1,6 +1,8 @@
 #ifndef PRINT_H_INCLUDED
 #define PRINT_H_INCLUDED
 
+#include "percolationCentrality.h"
+
 #include <string>
 #include <fstream>
 #include <vector>
@@ -15,7 +17,8 @@ namespace epinetworks {
 	class Print {
 	public:
 		// Outputs virulence in every time step it is called
-		static void virulenceOutput(std::string filenameVirulence, double time, std::vector<Individual*> &infecteds){
+		static void virulenceOutput(std::string filenameVirulence, double time, 
+			std::vector<Individual*> &infecteds, Network &network){
 			std::ofstream myOutput2(filenameVirulence, std::ios_base::app);
 			myOutput2 << time;
 			double totalVirulence = 0.;
@@ -60,12 +63,20 @@ namespace epinetworks {
 			double averageOtherVirulence = 0;
 			if (indexOther != 0)
 				averageOtherVirulence = virOther/ indexOther;
+			double ratio = PercolationCentrality::calculatePCBCratio(network);
 			myOutput2 << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t" <<
-				averageSuperVirulence << "\t" << averageOtherVirulence << "\t" << infecteds.size();
+				averageSuperVirulence << "\t" << averageOtherVirulence << "\t" << infecteds.size() << "\t" << 
+				ratio;
 			myOutput2 << std::endl;
 			//std::cout << averageVirulence << " " << infecteds.size() << std::endl;
 
 		}
+
+		/*static void percolationOutput(std::string filenameVirulenceStatus, Network &network){
+			std::ofstream myOutput(filenameVirulenceStatus, std::ios_base::app);
+			double ratio = PercolationCentrality::calculatePCBCratio(network);
+			myOutput << ratio << std::endl;
+		}*/
 
 		static void statusOutput(std::string filenameVirulenceStatus, Network &network){
 			std::ofstream myOutput(filenameVirulenceStatus, std::ios_base::app);

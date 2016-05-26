@@ -1,3 +1,4 @@
+
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
@@ -17,6 +18,7 @@ const double C = 0.003;
 const double D = 0.75;		// Mean k = 4
 
 const double E = 0.0001;		// SIR
+const double F = 0.5; // SIR k=4 (for 4-1=3)
 
 
 const double RECOVERY = 1;				// Recovery

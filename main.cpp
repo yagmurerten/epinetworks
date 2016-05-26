@@ -31,7 +31,7 @@ int NETWORK_SIZE = 10000;				// # of individuals in the network
 int MUTATION_FRAC = 0;
 double VARIANCE_K = 4;
 double INITIAL_TRANSMISSION = 1.1;			// initial value of virulenc
-int NETWORK_TYPE = 0;
+int NETWORK_TYPE = 2;
 
 // Initializes a network of a given size and type
 // using var as the variance in the degree distribution
@@ -104,8 +104,8 @@ void inputNetwork(Network &network, const std::string &input) {
 	}
 }
 
-int main(int, char *argv[]){
-	double fracTransmission = static_cast<double>(atoi(argv[1]));
+int main(/*int, char *argv[]*/){
+	double fracTransmission = 120; //static_cast<double>(atoi(argv[1]));
 	double transmission = fracTransmission / 100.0;
 	const std::string logFile = "parameters.txt";
 	std::ofstream logParameters(logFile, std::ios_base::app);
@@ -129,7 +129,7 @@ int main(int, char *argv[]){
 					DEBUG_ASSERT(network.isValid());
 					NetworkGenerator::generate(network, TYPE, rng);
 					DEBUG_ASSERT(network.isValid());
-					coefficient = C;
+					coefficient = E;
 					logParameters << "network type: fully connected" << std::endl; }
 			break;
 		case 1: {
@@ -141,7 +141,7 @@ int main(int, char *argv[]){
 					Print::networkOutput(filenameNetwork, network);
 					Print::printNetwork(filenameNetwork, network);
 					Print::printEdgeList(filenameNetwork, network);
-					coefficient = D; 
+					coefficient = F; 
 					logParameters << "network type: gamma distributed" << std::endl;
 					logParameters << "variance: " << var << std::endl; }
 			break;
@@ -154,7 +154,7 @@ int main(int, char *argv[]){
 					Print::networkOutput(filenameNetwork, network);
 					Print::printNetwork(filenameNetwork, network);
 					Print::printEdgeList(filenameNetwork, network);
-					coefficient = D; 
+					coefficient = F; 
 					logParameters << "network type: homogeneous" << std::endl;
 					logParameters << "number of contacts: " << var << std::endl; }
 			break;
@@ -220,7 +220,7 @@ int main(int, char *argv[]){
 		double t = 0.;
 		do {
 			Gillespie::Infecteds infecteds;
-			Pathogen initialPathogen(transmission*E);
+			Pathogen initialPathogen(transmission*coefficient);
 			int i = getRandom(network.size(), rng);
 			Individual &patientZero = dynamic_cast<Individual&>(network[i]);
 			patientZero.getInfected(initialPathogen);
@@ -251,7 +251,7 @@ int main(int, char *argv[]){
 				*/
 				
 				
-				Print::virulenceOutput(filenameVirulence2, t, infecteds);
+				Print::virulenceOutput(filenameVirulence2, t, infecteds, network);
 				//Print::statusOutput(filenameVirulenceStatus, network);
 				//Print::virLevel(filenameVirLevel, network);
 				

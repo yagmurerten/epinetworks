@@ -1,4 +1,4 @@
-	#include "Debug.h"
+#include "Debug.h"
 #include "Gillespie.h"
 #include "individual.h"
 #include "network.h"
