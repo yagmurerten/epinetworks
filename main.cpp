@@ -104,11 +104,10 @@ void inputNetwork(Network &network, const std::string &input) {
 	}
 }
 
-int main(/*int, char *argv[]*/){
-	double fracTransmission = 120; //static_cast<double>(atoi(argv[1]));
+int main(int, char *argv[]){
+	double fracTransmission = static_cast<double>(atoi(argv[1]));
 	double transmission = fracTransmission / 100.0;
-	const std::string logFile = "parameters.txt";
-	std::ofstream logParameters(logFile, std::ios_base::app);
+	std::ofstream logParameters("parameters.txt", std::ios_base::app);
 
 	const std::vector<int> seed;
 
@@ -120,8 +119,8 @@ int main(/*int, char *argv[]*/){
 	double mutationFrac;
 	if (OPTION_NETWORK_INPUT == false) {
 		logParameters << "option network: false" << std::endl;
-		double var = VARIANCE_K; // static_cast<double>(atoi(argv[1]));
-		int networkType = NETWORK_TYPE; // atoi(argv[2]);
+		double var = static_cast<double>(atoi(argv[2]));
+		int networkType = NETWORK_TYPE; // atoi(argv[3]);
 		switch (networkType) {
 		case 0: {
 					NetworkGenerator::NetworkType TYPE = NetworkGenerator::NetworkType::FullyConnected;
@@ -198,68 +197,33 @@ int main(/*int, char *argv[]*/){
 	}
     
 	for (std::size_t replicate = 1u; replicate < NUMBER_OF_REPLICATES+1; ++replicate) {
-		//const std::string filenameVirulence = filenameNetwork + "virulence" + std::to_string(replicate) + ".txt";
 		const std::string filenameVirulence2 = filenameNetwork + "virulence" + std::to_string(replicate) + ".txt";
-		//const std::string filenameVirulenceStatus = filenameNetwork + "virulenceStat" + std::to_string(replicate) + ".txt";
-		//const std::string filenameVirLevel = filenameNetwork + "virLevel" + std::to_string(replicate) + ".txt";
 		const std::string filenameFinalSize = "finalsize.txt";
 		std::ofstream finalSize(filenameFinalSize, std::ios_base::app);
-		//std::ofstream myOutputStat(filenameVirulenceStatus, std::ios_base::app);
-		//for (int index = 0; index < NETWORK_SIZE; ++index)
-		//	myOutputStat << index << "\t";
-		//myOutputStat << std::endl;
-		//std::ofstream myOutputLevel(filenameVirLevel, std::ios_base::app);
-		//for (int index = 0; index < NETWORK_SIZE; ++index)
-		//	myOutputLevel << index << "\t";
-		//myOutputLevel << std::endl;
-		// Returns how many extinctions occured
-		//int extinctionCount = 0;
+		double t = 0.;
+		Gillespie::Infecteds infecteds;
+		Pathogen initialPathogen(transmission*coefficient);
+		int i = getRandom(network.size(), rng);
+		Individual &patientZero = dynamic_cast<Individual&>(network[i]);
+		patientZero.getInfected(initialPathogen);
+		infecteds.push_back(&patientZero);
+		Individual::updateSusceptibleNeigbours(patientZero, Individual::UpdateRule::Down);
+		Print::virulenceOutput(filenameVirulence2, t, infecteds, network);
 		bool endEpidemics = false;
 		//std::ofstream fileExtinctions("extinctions.txt", std::ios_base::app);
         bool outPutTaken =0;
-		double t = 0.;
 		do {
-			Gillespie::Infecteds infecteds;
-			Pathogen initialPathogen(transmission*coefficient);
-			int i = getRandom(network.size(), rng);
-			Individual &patientZero = dynamic_cast<Individual&>(network[i]);
-			patientZero.getInfected(initialPathogen);
-			infecteds.push_back(&patientZero);
-			Individual::updateSusceptibleNeigbours(patientZero, Individual::UpdateRule::Down);
-			int count = 0;
-			while (t < ENDTIME) {
 
 				double rTotal = Gillespie::rateSum(infecteds);
 
 				double tau = -log(getRandomUniform(rng)) / rTotal;
 
-				/*
-				if (static_cast<int>(round(t)) % 2 == 0) {
-					if (outPutTaken == 0) {
-						Print::virulenceOutput(filenameVirulence, static_cast<int>(round(t)), infecteds);
-						//Print::statusOutput(filenameVirulenceStatus, network);
-						//Print::virLevel(filenameVirLevel, network);
-						//Print::virulenceSnapShot(static_cast<int>(round(t)), replicate, infecteds);
-						//Print::infectedNodesOutput(static_cast<int>(round(t)), replicate, infecteds);
-						outPutTaken = 1;
-					}
-				}
-
-				if (static_cast<int>(round(t)) % 2 == 1) {
-					outPutTaken = 0;
-				}
-				*/
-				
-				
-				Print::virulenceOutput(filenameVirulence2, t, infecteds, network);
-				//Print::statusOutput(filenameVirulenceStatus, network);
-				//Print::virLevel(filenameVirLevel, network);
-				
 				Gillespie::selectEventSIR(network, infecteds, rTotal, rng);
 
 				t += tau;
-				++count;
 				
+				Print::virulenceOutput(filenameVirulence2, t, infecteds, network);
+							
 				if (infecteds.size() == 0) {
 					std::cout << "end of epidemics" << std::endl;
 					int finalRecovered = 0;
@@ -272,9 +236,7 @@ int main(/*int, char *argv[]*/){
 					break;
 					
 				}
-			}
 		} while (t < ENDTIME && endEpidemics==false); 
-		// Tries at least 10 times in case of extinctions
 		for (std::size_t t = 0; t < network.size(); ++t) {
 			dynamic_cast<Individual &>(network[t]).getSusceptible();
 			Individual::setSusceptibleNumber(dynamic_cast<Individual &>(network[t]));

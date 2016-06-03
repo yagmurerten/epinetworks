@@ -63,11 +63,9 @@ namespace epinetworks {
 			double averageOtherVirulence = 0;
 			if (indexOther != 0)
 				averageOtherVirulence = virOther/ indexOther;
-			double ratio = PercolationCentrality::calculatePCBCratio(network);
+			//double ratio = PercolationCentrality::calculatePCBCratio(network);
 			myOutput2 << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t" <<
-				averageSuperVirulence << "\t" << averageOtherVirulence << "\t" << infecteds.size() << "\t" << 
-				ratio;
-			myOutput2 << std::endl;
+				averageSuperVirulence << "\t" << averageOtherVirulence << "\t" << infecteds.size() << std::endl;
 			//std::cout << averageVirulence << " " << infecteds.size() << std::endl;
 
 		}
