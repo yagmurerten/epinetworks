@@ -6,6 +6,7 @@
 namespace epinetworks {
 
 	class Network; 
+	class NetworkNode;
 
 	class NetworkGenerator {
 	public:

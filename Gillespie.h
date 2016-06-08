@@ -14,12 +14,17 @@ namespace epinetworks {
 	public:
 		typedef std::vector<Individual*> Infecteds;
 
-		static double rateSum(const Infecteds &infecteds);
-		static void selectEvent(Network &population, Infecteds &infecteds, double rateSum, RandomNumberGenerator &rng, double mutationRate);
-		static void selectEventSIR(Network &population, Infecteds &infecteds, double rateSum, RandomNumberGenerator &rng);
+		enum class DynamicsType {
+			SIS,
+			SIR
+		};
+
+		static double rateSum(const Infecteds &infecteds, double recoveryRate);
+		static void selectEvent(Network &population, Infecteds &infecteds, double rateSum, RandomNumberGenerator &rng, double mutationRate, double mutationSD, double recoveryRate);
+		static void selectEventSIR(Network &population, Infecteds &infecteds, double rateSum, RandomNumberGenerator &rng, double mutationRate, double mutationSD, double recoveryRate);
 
 	private:
-		static double getEventRate(Individual &individual);
+		static double getEventRate(Individual &individual, double recoveryRate);
 	};
 }
 

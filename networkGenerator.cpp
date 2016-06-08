@@ -3,7 +3,6 @@
 #include "network.h"
 #include "networkGenerator.h"
 #include "random.h"
-#include "parameters.h"
 
 #include <algorithm>
 #include <random>

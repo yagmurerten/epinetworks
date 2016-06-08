@@ -1,5 +1,4 @@
 #include "pathogen.h"
-#include "parameters.h"
 #include "random.h"
 #include <cmath> 
 

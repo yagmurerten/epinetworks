@@ -23,15 +23,9 @@
 #include <sstream>
 
 using namespace epinetworks;
+
 // some parameters for main.cpp
-std::size_t NUMBER_OF_REPLICATES = 100;	// # of replicates on each network
-const int ENDTIME = 1500;				// # of time steps
-double INITIAL_VIRULENCE = 0.25;			// initial value of virulence
-int NETWORK_SIZE = 10000;				// # of individuals in the network
-int MUTATION_FRAC = 0;
-double VARIANCE_K = 4;
-double INITIAL_TRANSMISSION = 1.1;			// initial value of virulenc
-int NETWORK_TYPE = 2;
+bool MUTATIONS = false;
 
 // Initializes a network of a given size and type
 // using var as the variance in the degree distribution
@@ -110,60 +104,53 @@ int main(int, char *argv[]){
 	std::ofstream logParameters("parameters.txt", std::ios_base::app);
 
 	const std::vector<int> seed;
-
 	RandomNumberGenerator rng = create_random_number_generator(seed);
+
 	const std::string filenameNetwork = "networkNew";
 
 	Network network(NETWORK_SIZE);
-	double coefficient;
-	double mutationFrac;
+
 	if (OPTION_NETWORK_INPUT == false) {
 		logParameters << "option network: false" << std::endl;
 		double var = static_cast<double>(atoi(argv[2]));
-		int networkType = NETWORK_TYPE; // atoi(argv[3]);
-		switch (networkType) {
-		case 0: {
-					NetworkGenerator::NetworkType TYPE = NetworkGenerator::NetworkType::FullyConnected;
-					initializeNetwork(network, TYPE, var, rng);
-					DEBUG_ASSERT(network.isValid());
-					NetworkGenerator::generate(network, TYPE, rng);
-					DEBUG_ASSERT(network.isValid());
-					coefficient = E;
-					logParameters << "network type: fully connected" << std::endl; }
-			break;
-		case 1: {
-					NetworkGenerator::NetworkType TYPE = NetworkGenerator::NetworkType::Gamma;
-					initializeNetwork(network, TYPE, var, rng);
-					DEBUG_ASSERT(network.isValid());
-					NetworkGenerator::generate(network, TYPE, rng);
-					DEBUG_ASSERT(network.isValid());
-					Print::networkOutput(filenameNetwork, network);
-					Print::printNetwork(filenameNetwork, network);
-					Print::printEdgeList(filenameNetwork, network);
-					coefficient = F; 
-					logParameters << "network type: gamma distributed" << std::endl;
-					logParameters << "variance: " << var << std::endl; }
-			break;
-		case 2: {
-					NetworkGenerator::NetworkType TYPE = NetworkGenerator::NetworkType::Homogeneous;
-					initializeNetwork(network, TYPE, var, rng);
-					DEBUG_ASSERT(network.isValid());
-					NetworkGenerator::generate(network, TYPE, rng);
-					DEBUG_ASSERT(network.isValid());
-					Print::networkOutput(filenameNetwork, network);
-					Print::printNetwork(filenameNetwork, network);
-					Print::printEdgeList(filenameNetwork, network);
-					coefficient = F; 
-					logParameters << "network type: homogeneous" << std::endl;
-					logParameters << "number of contacts: " << var << std::endl; }
-			break;
+		NetworkGenerator::NetworkType networkType = NETWORK_TYPE; // atoi(argv[3]);
+		if (networkType == NetworkGenerator::NetworkType::FullyConnected) {
+			initializeNetwork(network, networkType, var, rng);
+			DEBUG_ASSERT(network.isValid());
+			NetworkGenerator::generate(network, networkType, rng);
+			DEBUG_ASSERT(network.isValid());
+			logParameters << "network type: fully connected" << std::endl;
+		}
+		else if (networkType == NetworkGenerator::NetworkType::Gamma) {
+			initializeNetwork(network, networkType, var, rng);
+			DEBUG_ASSERT(network.isValid());
+			NetworkGenerator::generate(network, networkType, rng);
+			DEBUG_ASSERT(network.isValid());
+			Print::networkOutput(filenameNetwork, network);
+			Print::printNetwork(filenameNetwork, network);
+			Print::printEdgeList(filenameNetwork, network);
+			logParameters << "network type: gamma distributed" << std::endl;
+			logParameters << "variance: " << var << std::endl;
+		}
+		else if (networkType == NetworkGenerator::NetworkType::Homogeneous) {
+			initializeNetwork(network, networkType, var, rng);
+			DEBUG_ASSERT(network.isValid());
+			NetworkGenerator::generate(network, networkType, rng);
+			DEBUG_ASSERT(network.isValid());
+			Print::networkOutput(filenameNetwork, network);
+			Print::printNetwork(filenameNetwork, network);
+			Print::printEdgeList(filenameNetwork, network);
+			logParameters << "network type: homogeneous" << std::endl;
+			logParameters << "number of contacts: " << var << std::endl;
+		}
+		else {
+			exit(1);
 		}
 	}
 
 	//assuming we only want it for heterogeneous networks
 	if (OPTION_NETWORK_INPUT == true) {
 		logParameters << "option network: true" << std::endl;
-		coefficient = D;
 		inputNetwork(network, filenameNetwork);
 		DEBUG_ASSERT(network.isValid());
 		std::string filenameNetwork2 = filenameNetwork + "2";
@@ -172,11 +159,19 @@ int main(int, char *argv[]){
 		Print::printEdgeList(filenameNetwork2, network);
 	}
 
-	mutationFrac = static_cast<double>(MUTATION_FRAC); //static_cast<double>(atoi(argv[1]));
+	double mutationFrac; 
+	double mutationRate;
+	
+	if (MUTATIONS == true) {
+		mutationFrac = static_cast<double>(atoi(argv[1]));
+		mutationRate = 1.0 / mutationFrac;
+	}
+	else mutationRate = 0.;
 
-	double mutationRate = 1.0 / mutationFrac;
+	double mutationSD = evoParameters::MUTATION_SD;
+	
 	logParameters << "mutation rate: " << mutationFrac << std::endl;
-	logParameters << "mutation sd: " << MUTATION_SD << std::endl;
+	logParameters << "mutation sd: " << evoParameters::MUTATION_SD << std::endl;
 	logParameters << "endtime: " << ENDTIME << std::endl;
 	logParameters << "transmission: " << transmission << std::endl;
 	logParameters << "network size: " << NETWORK_SIZE << std::endl;
@@ -202,6 +197,8 @@ int main(int, char *argv[]){
 		std::ofstream finalSize(filenameFinalSize, std::ios_base::app);
 		double t = 0.;
 		Gillespie::Infecteds infecteds;
+		double coefficient;
+		assignCoefficient(coefficient, NETWORK_TYPE, DYNAMICS_TYPE);
 		Pathogen initialPathogen(transmission*coefficient);
 		int i = getRandom(network.size(), rng);
 		Individual &patientZero = dynamic_cast<Individual&>(network[i]);
@@ -214,11 +211,11 @@ int main(int, char *argv[]){
         bool outPutTaken =0;
 		do {
 
-				double rTotal = Gillespie::rateSum(infecteds);
+				double rTotal = Gillespie::rateSum(infecteds, RECOVERY);
 
 				double tau = -log(getRandomUniform(rng)) / rTotal;
 
-				Gillespie::selectEventSIR(network, infecteds, rTotal, rng);
+				Gillespie::selectEventSIR(network, infecteds, rTotal, rng, mutationRate, mutationSD, RECOVERY);
 
 				t += tau;
 				
