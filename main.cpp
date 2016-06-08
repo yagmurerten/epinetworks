@@ -202,7 +202,9 @@ int main(int, char *argv[]){
 	for (std::size_t replicate = 1u; replicate < NUMBER_OF_REPLICATES+1; ++replicate) {
         const std::string filenameVirulence = "virulence" + std::to_string(replicate) + ".txt";
 		const std::string filenameFinalSize = "finalsize.txt";
+        const std::string filenameMaxIncidence = "maxIncidence.txt";
 		std::ofstream finalSize(filenameFinalSize, std::ios_base::app);
+        std::ofstream maxInc(filenameMaxIncidence, std::ios_base::app);
 		double t = 0.;
 		double coefficient;
 		assignCoefficient(coefficient, NETWORK_TYPE, DYNAMICS_TYPE);
@@ -212,11 +214,12 @@ int main(int, char *argv[]){
 		patientZero.getInfected(initialPathogen);
         Infecteds infecteds(&patientZero,NETWORK_SIZE);
 		Individual::updateSusceptibleNeigbours(patientZero, Individual::UpdateRule::Down);
-        //if (MUTATIONS)
+        if (MUTATIONS)
 		    Print::virulenceOutput(filenameVirulence, t, infecteds, network);
 		bool endEpidemics = false;
 		//std::ofstream fileExtinctions("extinctions.txt", std::ios_base::app);
         bool outPutTaken =0;
+        int maxIncidence = 0;
 		do {
 				double rTotal = Gillespie::rateSum(infecteds);
 
@@ -226,11 +229,13 @@ int main(int, char *argv[]){
                 
 				t += tau;
 				
-                //if (MUTATIONS)
+                if (MUTATIONS)
 				    Print::virulenceOutput(filenameVirulence, t, infecteds, network);
 				
                 int infectedSize = infecteds.getSizeInfected();
-
+                if (infectedSize > maxIncidence) {
+                    maxIncidence = infectedSize;
+                }
 				if (infecteds.getSizeInfected() == 0) {
 					//std::cout << "end of epidemics" << std::endl;
 					int finalRecovered = 0;
@@ -239,6 +244,7 @@ int main(int, char *argv[]){
 							++finalRecovered;
 						}
 					finalSize << replicate << "\t" << finalRecovered << std::endl;
+                    maxInc << replicate << "\t" << maxIncidence << std::endl;
 					endEpidemics = true;
 					break;
 					
