@@ -168,6 +168,8 @@ namespace epinetworks {
 			}
 	}
 
+
+
 	// Other types of networks are not yet implemented
 	static void makeSmallWorldLinks(Network &network) {};
 

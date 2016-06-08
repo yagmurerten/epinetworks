@@ -1,7 +1,7 @@
 #ifndef INDIVIDUAL_H
 #define INDIVIDUAL_H
 
-#include "Gillespie.h"
+#include "Dynamics.h"
 #include "pathogen.h"
 #include "networkNode.h"
 
@@ -15,13 +15,14 @@ namespace epinetworks {
 			infected,
 			recovered
 		};
+
 		enum class UpdateRule {
 			Up,
 			Down
 		};
 		void getInfected(Pathogen &pathogen);
 		void getSusceptible();
-		void getRecovered(Gillespie::DynamicsType type);
+		void getRecovered(Dynamics::DynamicsType type);
 		Individual::Status getStatus() const;
 		Pathogen getPathogen(); 
 		static void updateSusceptibleNeigbours(Individual &individual, UpdateRule rule);

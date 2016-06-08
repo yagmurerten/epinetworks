@@ -31,10 +31,11 @@ namespace epinetworks {
 	
 
 	// Becomes recovered
-    void Individual::getRecovered(Gillespie::DynamicsType type) {
-        if (type == Gillespie::DynamicsType::SIR)
+    void Individual::getRecovered(Dynamics::DynamicsType type) {
+        if (type == Dynamics::DynamicsType::SIR)
             _status = Status::recovered;
-        _status = Status::susceptible;
+        else
+            _status = Status::susceptible;
 		_pathogen = nullPathogen;
 	}
 

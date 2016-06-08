@@ -1,13 +1,15 @@
 //////////////////////////////////////////////////////////////////////////////////
 /////////// EpiNetworks - E. Yagmur Erten ////////////////////////////////////////
-/////////// 08.04.2016 ///////////////////////////////////////////////////////////
-/////////// Code for simulating epidemics (SIR) on heterogeneous random networks /
+/////////// 08.06.2016 ///////////////////////////////////////////////////////////
+/////////// Code for simulating epidemics (SIR and SIS) //////////////////////////
+/////////// on networks //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
-#include "connectionPool.h"
 #include "Debug.h"
 #include "Gillespie.h"
+#include "Dynamics.h"
 #include "individual.h"
+#include "infecteds.h"
 #include "network.h"
 #include "networkGenerator.h"
 #include "parameters.h"
@@ -25,7 +27,6 @@
 using namespace epinetworks;
 
 // some parameters for main.cpp
-bool MUTATIONS = false;
 
 // Initializes a network of a given size and type
 // using var as the variance in the degree distribution
@@ -99,20 +100,47 @@ void inputNetwork(Network &network, const std::string &input) {
 }
 
 int main(int, char *argv[]){
-	double fracTransmission = static_cast<double>(atoi(argv[1]));
+    double fracTransmission;
+    double mutationFrac;
+    double mutationRate = 0.;
+    double var;
+
+    if (INPUT_PARAMETERS == true) {
+        fracTransmission = static_cast<double>(atoi(argv[1]));
+        var = VARIANCE_K; //static_cast<double>(atoi(argv[2]));
+
+        if (MUTATIONS)
+            mutationFrac = static_cast<double>(atoi(argv[2]));
+    }
+    else {
+        fracTransmission = INITIAL_TRANSMISSION;
+        mutationFrac = evoParameters::MUTATION_FRAC;
+        var = VARIANCE_K;
+    }
+
+    if (MUTATIONS)
+        mutationRate = 1.0 / mutationFrac;
+
 	double transmission = fracTransmission / 100.0;
+
 	std::ofstream logParameters("parameters.txt", std::ios_base::app);
+    
+    logParameters << "mutation rate: " << mutationRate << std::endl;
+    logParameters << "mutation sd: " << evoParameters::MUTATION_SD << std::endl;
+    logParameters << "endtime: " << ENDTIME << std::endl;
+    logParameters << "transmission: " << transmission << std::endl;
+    logParameters << "network size: " << NETWORK_SIZE << std::endl;
+    logParameters << "recovery rate: " << RECOVERY << std::endl;
+    logParameters << "R0: " << transmission / RECOVERY << std::endl;
 
 	const std::vector<int> seed;
 	RandomNumberGenerator rng = create_random_number_generator(seed);
 
 	const std::string filenameNetwork = "networkNew";
+    Network network(NETWORK_SIZE);
 
-	Network network(NETWORK_SIZE);
-
-	if (OPTION_NETWORK_INPUT == false) {
+    if (OPTION_NETWORK_INPUT == false) {
 		logParameters << "option network: false" << std::endl;
-		double var = static_cast<double>(atoi(argv[2]));
 		NetworkGenerator::NetworkType networkType = NETWORK_TYPE; // atoi(argv[3]);
 		if (networkType == NetworkGenerator::NetworkType::FullyConnected) {
 			initializeNetwork(network, networkType, var, rng);
@@ -159,26 +187,6 @@ int main(int, char *argv[]){
 		Print::printEdgeList(filenameNetwork2, network);
 	}
 
-	double mutationFrac; 
-	double mutationRate;
-	
-	if (MUTATIONS == true) {
-		mutationFrac = static_cast<double>(atoi(argv[1]));
-		mutationRate = 1.0 / mutationFrac;
-	}
-	else mutationRate = 0.;
-
-	double mutationSD = evoParameters::MUTATION_SD;
-	
-	logParameters << "mutation rate: " << mutationFrac << std::endl;
-	logParameters << "mutation sd: " << evoParameters::MUTATION_SD << std::endl;
-	logParameters << "endtime: " << ENDTIME << std::endl;
-	logParameters << "transmission: " << transmission << std::endl;
-	logParameters << "network size: " << NETWORK_SIZE << std::endl;
-	logParameters << "recovery rate: " << RECOVERY << std::endl;
-	logParameters << "R0: " << transmission / RECOVERY << std::endl;
-
-
 	for (std::size_t t = 0; t < network.size(); ++t) {
 		Individual::setSusceptibleNumber(dynamic_cast<Individual &>(network[t]));
 	}
@@ -192,37 +200,39 @@ int main(int, char *argv[]){
 	}
     
 	for (std::size_t replicate = 1u; replicate < NUMBER_OF_REPLICATES+1; ++replicate) {
-		const std::string filenameVirulence2 = filenameNetwork + "virulence" + std::to_string(replicate) + ".txt";
+        const std::string filenameVirulence = "virulence" + std::to_string(replicate) + ".txt";
 		const std::string filenameFinalSize = "finalsize.txt";
 		std::ofstream finalSize(filenameFinalSize, std::ios_base::app);
 		double t = 0.;
-		Gillespie::Infecteds infecteds;
 		double coefficient;
 		assignCoefficient(coefficient, NETWORK_TYPE, DYNAMICS_TYPE);
-		Pathogen initialPathogen(transmission*coefficient);
+		Pathogen initialPathogen(transmission*coefficient, RECOVERY);
 		int i = getRandom(network.size(), rng);
 		Individual &patientZero = dynamic_cast<Individual&>(network[i]);
 		patientZero.getInfected(initialPathogen);
-		infecteds.push_back(&patientZero);
+        Infecteds infecteds(&patientZero,NETWORK_SIZE);
 		Individual::updateSusceptibleNeigbours(patientZero, Individual::UpdateRule::Down);
-		Print::virulenceOutput(filenameVirulence2, t, infecteds, network);
+        //if (MUTATIONS)
+		    Print::virulenceOutput(filenameVirulence, t, infecteds, network);
 		bool endEpidemics = false;
 		//std::ofstream fileExtinctions("extinctions.txt", std::ios_base::app);
         bool outPutTaken =0;
 		do {
+				double rTotal = Gillespie::rateSum(infecteds);
 
-				double rTotal = Gillespie::rateSum(infecteds, RECOVERY);
+				Gillespie::selectEvent(infecteds, rTotal, rng, mutationRate, evoParameters::MUTATION_SD, DYNAMICS_TYPE, MUTATIONS);
 
-				double tau = -log(getRandomUniform(rng)) / rTotal;
-
-				Gillespie::selectEventSIR(network, infecteds, rTotal, rng, mutationRate, mutationSD, RECOVERY);
-
+                double tau = -log(getRandomUniform(rng)) / rTotal;
+                
 				t += tau;
 				
-				Print::virulenceOutput(filenameVirulence2, t, infecteds, network);
-							
-				if (infecteds.size() == 0) {
-					std::cout << "end of epidemics" << std::endl;
+                //if (MUTATIONS)
+				    Print::virulenceOutput(filenameVirulence, t, infecteds, network);
+				
+                int infectedSize = infecteds.getSizeInfected();
+
+				if (infecteds.getSizeInfected() == 0) {
+					//std::cout << "end of epidemics" << std::endl;
 					int finalRecovered = 0;
 					for (std::size_t i = 0u; i < network.size(); ++i) {
 						if (dynamic_cast<Individual&>(network[i]).getStatus() == Individual::Status::recovered)
@@ -239,6 +249,5 @@ int main(int, char *argv[]){
 			Individual::setSusceptibleNumber(dynamic_cast<Individual &>(network[t]));
 		}
 	}
-
 }
 

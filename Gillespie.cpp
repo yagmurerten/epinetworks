@@ -1,5 +1,10 @@
 #include "Debug.h"
 #include "Gillespie.h"
+#include "Dynamics.h"
+#include "DynamicsSIR.h"
+#include "DynamicsSIS.h"
+
+#include "infecteds.h"
 #include "individual.h"
 #include "network.h"
 #include "networkGenerator.h"
@@ -13,119 +18,91 @@
 #include <vector>
 
 namespace epinetworks {
-	// Transmission event with mutation
-	static void mutationTransmission(Individual &focal, Gillespie::Infecteds &infecteds, RandomNumberGenerator &rng, double mutationSD) {
-		if (focal.sizeSusceptibleNeighbours() > 0) {
-			int newInfected;
-			do {
-				newInfected = getRandom(focal.getNumberOfContacts(), rng);
-			} while (dynamic_cast<Individual &>(focal.getNeighbour(newInfected)).getStatus() == Individual::Status::susceptible);
-			Individual &newInfectedNeighbour = dynamic_cast<Individual &>(focal.getNeighbour(newInfected));
-			Pathogen mutatedPathogen = Pathogen::mutatePathogen(focal.getPathogen(), mutationSD, rng);
-			newInfectedNeighbour.getInfected(mutatedPathogen);
-			Individual::updateSusceptibleNeigbours(newInfectedNeighbour, Individual::UpdateRule::Down);
-			infecteds.push_back(&newInfectedNeighbour);
-		}
-	}
 
-	// Transmission event without mutation
-	static void noMutationTransmission(Individual &focal, Gillespie::Infecteds &infecteds, RandomNumberGenerator &rng) {
-		if (focal.sizeSusceptibleNeighbours() > 0) {
-			int newInfected;
-			do {
-				newInfected = getRandom(focal.getNumberOfContacts(), rng);
-			} while (dynamic_cast<Individual &>(focal.getNeighbour(newInfected)).getStatus() != Individual::Status::susceptible);
-			Individual &newInfectedNeighbour = dynamic_cast<Individual &>(focal.getNeighbour(newInfected));
-			Pathogen oldPathogen = focal.getPathogen();
-			newInfectedNeighbour.getInfected(oldPathogen);
-			if (newInfectedNeighbour.sizeSusceptibleNeighbours()<0)
-				std::cout << "stop 2" << std::endl;
-			Individual::updateSusceptibleNeigbours(newInfectedNeighbour, Individual::UpdateRule::Down);
-			infecteds.push_back(&newInfectedNeighbour);
-		}
-	}
-
-	/*
-	// Disease induced mortality event
-	static void virulence(Individual &focal, Gillespie::Infecteds &infecteds, std::size_t index) {
-		focal.getSusceptible();
-		Individual::updateSusceptibleNeigbours(focal, Individual::UpdateRule::Up);
-		std::swap(infecteds[index], infecteds.back());
-		infecteds.pop_back();
-	}
-	*/
-
-	/*
-	// Recovery event SIS
-	static void recovery(Individual &focal, Gillespie::Infecteds &infecteds, std::size_t index) {
-		focal.getSusceptible();
-		Individual::updateSusceptibleNeigbours(focal, Individual::UpdateRule::Up);
-		std::swap(infecteds[index], infecteds.back());
-		infecteds.pop_back();
-	}
-	*/
-
-	static void recovery(Individual &focal, Gillespie::Infecteds &infecteds, std::size_t index) {
-		focal.getRecovered(Gillespie::DynamicsType::SIR);
-		//Individual::updateSusceptibleNeigbours(focal, Individual::UpdateRule::Up);
-		std::swap(infecteds[index], infecteds.back());
-		infecteds.pop_back();
-	}
 
 	// Gets the total event rate of a single individual 
-	double Gillespie::getEventRate(Individual &individual, double recoveryRate) {
+	double Gillespie::getEventRate(Individual &individual) {
 		double eventRate = individual.getPathogen().getTransmission()*individual.sizeSusceptibleNeighbours()
-			+ individual.getPathogen().getVirulence() + recoveryRate;
+            + individual.getPathogen().getVirulence() + individual.getPathogen().getRecoveryRate();
 		return eventRate;
 	}
 
 	// Gets the total event rate in the population
-	double Gillespie::rateSum(const Infecteds &infecteds, double recoveryRate) {
+    double Gillespie::rateSum(Infecteds &infecteds) {
 		double rateSum = 0.;
-		for (size_t i = 0; i < infecteds.size(); ++i) {
-			rateSum += getEventRate(*infecteds[i], recoveryRate);
+		for (size_t i = 0; i < infecteds.getSizeInfected(); ++i) {
+			rateSum += getEventRate(infecteds.returnIndividual(i));
 		}
 		return rateSum;
 	}
 
 	// Selects the next individual to have an event
 	// and the next event to happen.
-	void Gillespie::selectEventSIR(Network &population, Infecteds &infecteds, double rateSum, RandomNumberGenerator &rng, double mutationRate, double mutationSD, double recoveryRate) {
-		double rand = getRandomUniform(rng);
-		double threshold = rateSum*rand;
-		double sp = 0.;
-		int index = 0;
-		double eventRate = 0.;
-		while (sp <= threshold) {
-			eventRate = getEventRate(*infecteds[index], recoveryRate);
-			sp += eventRate;
-			if (sp <= threshold) {
-				++index;
-				if (index > infecteds.size() - 1){
-					std::cout << "no more susceptible neighbours" << std::endl;
-					std::cout << "infected size" << infecteds.size() << std::endl;
-					exit(1);
-				}
-			}
-		}
-		sp = 0.;
-		rand = getRandomUniform(rng);
-		threshold = rand*eventRate;
-		Individual &focal = *infecteds[index];
-		sp += focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
-		if (threshold < sp){
-			noMutationTransmission(focal, infecteds, rng);
-		}
-			else {
-				sp += recoveryRate;
-				if (threshold <= sp) {
-					recovery(focal, infecteds, index);
-					}
-				}
-			}
 
+    static Dynamics *createDynamics(Dynamics::DynamicsType type) {
+        if (type == Dynamics::DynamicsType::SIS)
+            return new DynamicsSIS;
+        return new DynamicsSIR;
+    }
+
+    void Gillespie::selectEvent(Infecteds &infecteds, double rateSum, RandomNumberGenerator &rng, double mutationRate, double mutationSD, Dynamics::DynamicsType type, bool evolution) {
+        Dynamics *dynamics = createDynamics(type);
+        double rand = getRandomUniform(rng);
+        double threshold = rateSum*rand;
+        double sp = 0.;
+        int index = 0;
+        double eventRate = 0.;
+        while (sp <= threshold) {
+            eventRate = getEventRate(infecteds.returnIndividual(index));
+            sp += eventRate;
+            if (sp <= threshold) {
+                ++index;
+                if (index > infecteds.getSizeInfected() - 1){
+                    std::cout << "no more susceptible neighbours" << std::endl;
+                    std::cout << "infected size" << infecteds.getSizeInfected() << std::endl;
+                    exit(1);
+                }
+            }
+        }
+        sp = 0.;
+        rand = getRandomUniform(rng);
+        threshold = rand*eventRate;
+        Individual &focal = infecteds.returnIndividual(index);
+        if (evolution) {
+            sp += mutationRate*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
+            if (threshold < sp){
+                dynamics->transmission(focal, infecteds, rng, mutationSD, 1);
+            }
+            else {
+                sp += (1 - mutationRate)*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
+                if (threshold < sp) {
+                    dynamics->transmission(focal, infecteds, rng, mutationSD, 0);
+                }
+                else {
+                    sp += focal.getPathogen().getRecoveryRate();
+                    if (threshold <= sp) {
+                        dynamics->recovery(focal, infecteds, index);
+                     }
+                   }
+               }
+           }
+        
+        else {
+            sp += focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
+            if (threshold < sp){
+                dynamics->transmission(focal, infecteds, rng, mutationSD, 0);
+            }
+            else {
+                sp += focal.getPathogen().getRecoveryRate();
+                if (threshold <= sp) {
+                    dynamics->recovery(focal, infecteds, index);
+                }
+            }
+        }
+    }
+       
+ }
 	
-}
 
 
 

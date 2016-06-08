@@ -2,6 +2,7 @@
 #define PRINT_H_INCLUDED
 
 #include "percolationCentrality.h"
+#include "infecteds.h"
 
 #include <string>
 #include <fstream>
@@ -18,63 +19,14 @@ namespace epinetworks {
 	public:
 		// Outputs virulence in every time step it is called
 		static void virulenceOutput(std::string filenameVirulence, double time, 
-			std::vector<Individual*> &infecteds, Network &network){
+			Infecteds &infecteds, Network &network){
 			std::ofstream myOutput2(filenameVirulence, std::ios_base::app);
 			myOutput2 << time;
-			double totalVirulence = 0.;
-			for (std::size_t i = 0; i < infecteds.size(); ++i) {
-				Individual &ind = *infecteds[i];
-				totalVirulence += ind.getPathogen().getVirulence();
-			}
-			double averageVirulence = totalVirulence / infecteds.size();
-			double sd = 0.;
-			for (std::size_t i = 0; i < infecteds.size(); ++i) {
-				Individual &ind = *infecteds[i];
-				sd += pow((ind.getPathogen().getVirulence() - averageVirulence), 2.0);
-			}
-			double totalNeighbours = 0;
-			for (std::size_t i = 0; i < infecteds.size(); ++i) {
-				Individual &ind = *infecteds[i];
-				totalNeighbours += ind.sizeNeighbour();
-			}
-			double averageNeighbours = totalNeighbours / infecteds.size();
-			sd = sqrt(sd / infecteds.size());
-			double virSuperspread = 0.;
-			int indexSuperspread = 0;
-			for (std::size_t i = 0; i < infecteds.size(); ++i) {
-				Individual &ind = *infecteds[i];
-				if (ind.sizeNeighbour() >= 50) {
-					virSuperspread += ind.getPathogen().getVirulence();
-					++indexSuperspread;
-				}
-			}
-			double averageSuperVirulence = 0;
-			if (indexSuperspread != 0)
-				averageSuperVirulence = virSuperspread / static_cast<double>(indexSuperspread);
-			double virOther = 0.;
-			int indexOther = 0;
-			for (std::size_t i = 0; i < infecteds.size(); ++i) {
-				Individual &ind = *infecteds[i];
-				if (ind.sizeNeighbour() < 50) {
-					virOther += ind.getPathogen().getVirulence();
-					++indexOther;
-				}
-			}
-			double averageOtherVirulence = 0;
-			if (indexOther != 0)
-				averageOtherVirulence = virOther/ indexOther;
-			//double ratio = PercolationCentrality::calculatePCBCratio(network);
-			myOutput2 << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t" <<
-				averageSuperVirulence << "\t" << averageOtherVirulence << "\t" << infecteds.size() << std::endl;
-			//std::cout << averageVirulence << " " << infecteds.size() << std::endl;
-
+            double averageVirulence = infecteds.getAverageVirulence();
+            double sd = infecteds.getSDVirulence(averageVirulence);
+            double averageNeighbours = infecteds.getAverageNumberNeighbour();
+			myOutput2 << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t" << infecteds.getSizeInfected() << std::endl;
 		}
-
-		/*static void percolationOutput(std::string filenameVirulenceStatus, Network &network){
-			std::ofstream myOutput(filenameVirulenceStatus, std::ios_base::app);
-			double ratio = PercolationCentrality::calculatePCBCratio(network);
-			myOutput << ratio << std::endl;
-		}*/
 
 		static void statusOutput(std::string filenameVirulenceStatus, Network &network){
 			std::ofstream myOutput(filenameVirulenceStatus, std::ios_base::app);
@@ -84,7 +36,6 @@ namespace epinetworks {
 				myOutput << status << "\t";
 			}
 			myOutput << std::endl;
-			//std::cout << averageVirulence << " " << infecteds.size() << std::endl;
 		}
 
 		static void virLevel(std::string filenameVirLevel, Network &network){
@@ -95,7 +46,6 @@ namespace epinetworks {
 				myOutput << level << "\t";
 			}
 			myOutput << std::endl;
-			//std::cout << averageVirulence << " " << infecteds.size() << std::endl;
 		}
 
 
@@ -166,14 +116,17 @@ namespace epinetworks {
 		}
 
 		// Outputs all the levels of virulence at a given time step
-		static void virulenceSnapShot(int time, std::size_t rep, std::vector<Individual*> &infecteds){
-			std::ofstream myOutputVir(std::to_string(rep) + "pathogens" + std::to_string(time) + ".csv", std::ios_base::app);
-			double totalVirulence = 0.;
-			for (std::size_t i = 0; i < infecteds.size(); ++i) {
-				Individual &ind = *infecteds[i];
-				myOutputVir << ind.getPathogen().getVirulence() << std::endl;
-			}
-		}
+        static void virulenceSnapShot(std::string filenameVirSnap, int time, Infecteds &infecteds){
+            std::ofstream myOutputVir(filenameVirSnap, std::ios_base::app);
+            myOutputVir << time << ",";
+            std::vector<int> values = { 0, 4, 20, 50, 100, 10000 };
+            for (size_t index = 0; index < values.size()-1; ++index) {
+                double averageVirulence = infecteds.getAverageVirulenceK(values[index], values[index]);
+                int count = infecteds.getIndividualsWithKNeighbours(values[index], values[index]);
+                myOutputVir << count << "," << averageVirulence << ",";
+            }
+            myOutputVir << std::endl;
+        }
 
 		// Outputs all the infected nodes at a given time step
 		static void infectedNodesOutput(int time, std::size_t rep, std::vector<Individual*> &infecteds) {

@@ -4,14 +4,14 @@
 
 namespace epinetworks {
 
-	// SIS with virulence 
-	Pathogen::Pathogen(double virulence, double coefficient) :
+	// With virulence 
+    Pathogen::Pathogen(double virulence, double coefficient, double recoveryRate) :
 		_virulence(virulence), _transmission(coefficient*sqrt(virulence)), 
-		_coefficient(coefficient) {};
+        _coefficient(coefficient), _recoveryRate(recoveryRate) {};
 
-	//SIR without virulence
-	Pathogen::Pathogen(double transmission) : 
-		_virulence(0), _transmission(transmission),
+	//Without virulence
+    Pathogen::Pathogen(double transmission, double recoveryRate) :
+        _virulence(0), _transmission(transmission), _recoveryRate(recoveryRate),
 		_coefficient(0) {};
 
 	// Mutates pathogen with a given s.d. around 0 mean mutation effect
@@ -36,4 +36,8 @@ namespace epinetworks {
 	double Pathogen::getTransmission() const {
 		return _transmission;
 	}
+
+    double Pathogen::getRecoveryRate() const {
+        return _recoveryRate;
+    }
 }
