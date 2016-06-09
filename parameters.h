@@ -38,7 +38,7 @@ namespace epinetworks {
 	};
     
 	//DEFAULT NETWORK OPTIONS
-	static const NetworkConstructor::NetworkType NETWORK_TYPE = NetworkConstructor::NetworkType::Homogeneous;
+	static const NetworkConstructor::NetworkType NETWORK_TYPE = NetworkConstructor::NetworkType::Gamma;
 	static double VARIANCE_K = 4;
 	static int NETWORK_SIZE = 10000;                 // # of individuals in the network
 
@@ -52,7 +52,7 @@ namespace epinetworks {
 	const double SISparameters::SIS_hom_coef = 0.75;
 
     const double SIRparameters::INITIAL_VIRULENCE = 0.;
-    const double SISparameters::INITIAL_VIRULENCE = 0.3;
+    const double SISparameters::INITIAL_VIRULENCE = 0.5;
 
     const double SIRparameters::ENDTIME = 1000;
     const double SISparameters::ENDTIME = 10000;

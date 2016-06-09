@@ -75,7 +75,7 @@ namespace epinetworks {
                 logParameters << "number of contacts: " << var << std::endl;
             }
             else {
-                exit(1);
+                exit(5);
             }
     }
 

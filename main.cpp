@@ -153,14 +153,15 @@ int main(int, char *argv[]){
             patientZero.getInfected(initialPathogen);
         }
         Infecteds infecteds(&patientZero,NETWORK_SIZE);
-		Individual::updateSusceptibleNeigbours(patientZero, Individual::UpdateRule::Down);
-        if (MUTATIONS) {
-		    Print::virulenceOutput(filenameVirulence, 0, infecteds);
-            Print::virulenceSnapShot(filenameSnapshot, 0, infecteds);
-        }
+        Individual::updateSusceptibleNeigbours(patientZero, Individual::UpdateRule::Down);
 		bool endEpidemics = false;
 		//std::ofstream fileExtinctions("extinctions.txt", std::ios_base::app);
         bool outPutTaken =0;
+        if (MUTATIONS) {
+            Print::virulenceOutput(filenameVirulence, 0, infecteds);
+            Print::virulenceSnapShot(filenameSnapshot, 0, infecteds);
+            outPutTaken = 1;
+        }
         int maxIncidence = 0;
 		do {
                 double tau = -log(getRandomUniform(rng)) / Gillespie::rateSum(infecteds);
@@ -189,16 +190,17 @@ int main(int, char *argv[]){
                 }
 				if (infecteds.getSizeInfected() == 0) {
 					//std::cout << "end of epidemics" << std::endl;
-					int finalRecovered = 0;
-					for (std::size_t i = 0u; i < network.size(); ++i) {
-						if (dynamic_cast<Individual&>(network[i]).getStatus() == Individual::Status::recovered)
-							++finalRecovered;
-						}
-					finalSize << replicate << "\t" << finalRecovered << std::endl;
+                    if (DYNAMICS_TYPE == Dynamics::DynamicsType::SIR) {
+                        int finalRecovered = 0;
+                        for (std::size_t i = 0u; i < network.size(); ++i) {
+                            if (dynamic_cast<Individual&>(network[i]).getStatus() == Individual::Status::recovered)
+                                ++finalRecovered;
+                        }
+                        finalSize << replicate << "\t" << finalRecovered << std::endl;
+                    }
                     maxInc << replicate << "\t" << maxIncidence << std::endl;
 					endEpidemics = true;
 					break;
-					
 				}
 
 		} while (t < endtime && endEpidemics==false); 
