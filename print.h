@@ -17,15 +17,78 @@ namespace epinetworks {
 
 	class Print {
 	public:
+
+        // Outputs neighbours of all the individiuals
+        static void printNetwork(std::string filenameNetwork, Network &network) {
+            std::ofstream myOutputMatrix(filenameNetwork + "Matrix.txt");
+            for (std::size_t i = 0u; i < network.size(); ++i) {
+                for (std::size_t j = 0u; j < network[i].sizeNeighbour(); ++j) {
+                    myOutputMatrix << network[i].getNeighbour(j).getCoordinate() << "\t";
+                }
+                myOutputMatrix << std::endl;
+            }
+        }
+
+        // Outputs neighbours of all the individuals as .csv
+        static void printNetworkCsv(std::string filenameNetwork, Network &network) {
+            std::ofstream myOutputMatrix(filenameNetwork + "Matrix.csv");
+            for (std::size_t i = 0u; i < network.size(); ++i) {
+                for (std::size_t j = 0u; j < network[i].sizeNeighbour(); ++j) {
+                    myOutputMatrix << network[i].getNeighbour(j).getCoordinate() << ",";
+                }
+                myOutputMatrix << std::endl;
+            }
+        }
+
+        // Outputs edge list 
+        static void printEdgeList(std::string filenameNetwork, Network &network) {
+            std::ofstream myOutputMatrix(filenameNetwork + "EdgeList.csv");
+            for (std::size_t i = 0u; i < network.size(); ++i) {
+                for (std::size_t j = 0u; j < network[i].sizeNeighbour(); ++j) {
+                    std::size_t index = network[i].getNeighbour(j).getCoordinate();
+                    if (index>i) {
+                        myOutputMatrix << network[i].getCoordinate() << ",";
+                        myOutputMatrix << index << std::endl;
+                    }
+                }
+            }
+        }
+
+        // Outputs adjacency matrix
+        static void printAdjMatrix(std::string filenameNetwork, Network &network){
+            std::ofstream myOutputMatrix(filenameNetwork + "AdjMatrix.csv");
+            myOutputMatrix << " ,";
+
+            for (std::size_t i = 0u; i < network.size(); ++i) {
+                myOutputMatrix << std::to_string(i) << ",";
+            }
+
+            myOutputMatrix << std::endl;
+            for (std::size_t i = 0u; i < network.size(); ++i) {
+                myOutputMatrix << std::to_string(i) << ",";
+                for (std::size_t j = 0u; j < network.size(); ++j) {
+                    if (network[i].isNeighbour(network[j]) == true)
+                        myOutputMatrix << "1,";
+                    else if (network[i].isNeighbour(network[j]) == false)
+                        myOutputMatrix << "0,";
+                }
+                myOutputMatrix << std::endl;
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 		// Outputs virulence in every time step it is called
-		static void virulenceOutput(std::string filenameVirulence, double time, 
-			Infecteds &infecteds, Network &network){
-			std::ofstream myOutput2(filenameVirulence, std::ios_base::app);
-			myOutput2 << time;
+		static void virulenceOutput(std::string filenameVirulence, int time, 
+			Infecteds &infecteds){
+			std::ofstream myOutput(filenameVirulence, std::ios_base::app);
+            if (time == 0)
+                myOutput << "time, avg_virulence, sd_virulence, avg_neighbours, number_infected" << std::endl;
+			myOutput << time;
             double averageVirulence = infecteds.getAverageVirulence();
             double sd = infecteds.getSDVirulence(averageVirulence);
             double averageNeighbours = infecteds.getAverageNumberNeighbour();
-			myOutput2 << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t" << infecteds.getSizeInfected() << std::endl;
+			myOutput << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t" << infecteds.getSizeInfected() << std::endl;
 		}
 
 		static void statusOutput(std::string filenameVirulenceStatus, Network &network){
@@ -57,67 +120,12 @@ namespace epinetworks {
 			}
 		}
 
-		// Outputs neighbours of all the individiuals
-		static void printNetwork(std::string filenameNetwork, Network &network) {
-			std::ofstream myOutputMatrix(filenameNetwork + "Matrix.txt");
-			for (std::size_t i = 0u; i < network.size(); ++i) {
-				for (std::size_t j = 0u; j < network[i].sizeNeighbour(); ++j) {
-					myOutputMatrix << network[i].getNeighbour(j).getCoordinate() << "\t";
-				}
-				myOutputMatrix << std::endl;
-			}
-		}
-
-		// Outputs neighbours of all the individuals as .csv
-		static void printNetworkCsv(std::string filenameNetwork, Network &network) {
-			std::ofstream myOutputMatrix(filenameNetwork + "Matrix.csv");
-			for (std::size_t i = 0u; i < network.size(); ++i) {
-				for (std::size_t j = 0u; j < network[i].sizeNeighbour(); ++j) {
-					myOutputMatrix << network[i].getNeighbour(j).getCoordinate() << ",";
-				}
-				myOutputMatrix << std::endl;
-			}
-		}
-
-		// Outputs edge list 
-		static void printEdgeList(std::string filenameNetwork, Network &network) {
-			std::ofstream myOutputMatrix(filenameNetwork + "EdgeList.csv");
-			for (std::size_t i = 0u; i < network.size(); ++i) {
-				for (std::size_t j = 0u; j < network[i].sizeNeighbour(); ++j) {
-					std::size_t index = network[i].getNeighbour(j).getCoordinate();
-					if (index>i) {
-						myOutputMatrix << network[i].getCoordinate() << ",";
-						myOutputMatrix << index << std::endl;
-					}
-				}
-			}
-		}
-
-		// Outputs adjacency matrix
-		static void printAdjMatrix(std::string filenameNetwork, Network &network){
-			std::ofstream myOutputMatrix(filenameNetwork + "AdjMatrix.csv");
-			myOutputMatrix << " ,";
-
-			for (std::size_t i = 0u; i < network.size(); ++i) {
-				myOutputMatrix << std::to_string(i) << ",";
-			}
-
-			myOutputMatrix << std::endl;
-			for (std::size_t i = 0u; i < network.size(); ++i) {
-				myOutputMatrix << std::to_string(i) << ",";
-				for (std::size_t j = 0u; j < network.size(); ++j) {
-					if (network[i].isNeighbour(network[j]) == true)
-						myOutputMatrix << "1,";
-					else if (network[i].isNeighbour(network[j]) == false)
-						myOutputMatrix << "0,";
-				}
-				myOutputMatrix << std::endl;
-			}
-		}
 
 		// Outputs all the levels of virulence at a given time step
         static void virulenceSnapShot(std::string filenameVirSnap, int time, Infecteds &infecteds){
             std::ofstream myOutputVir(filenameVirSnap, std::ios_base::app);
+            if (time == 0)
+                myOutputVir << "time, degree_4, avg_vir, degree_20, avg_vir, degree_50, avg_vir, degree_100, avg_vir, degree_sup, avg_vir," << std::endl;
             myOutputVir << time << ",";
             std::vector<int> values = { 0, 4, 20, 50, 100, 10000 };
             for (size_t index = 0; index < values.size()-1; ++index) {

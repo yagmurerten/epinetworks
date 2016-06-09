@@ -7,7 +7,7 @@
 #include "infecteds.h"
 #include "individual.h"
 #include "network.h"
-#include "networkGenerator.h"
+#include "NetworkConstructor.h"
 
 #include "pathogen.h"
 #include "random.h"
@@ -45,9 +45,10 @@ namespace epinetworks {
         return new DynamicsSIR;
     }
 
-    void Gillespie::selectEvent(Infecteds &infecteds, double rateSum, RandomNumberGenerator &rng, double mutationRate, double mutationSD, Dynamics::DynamicsType type, bool evolution) {
+    void Gillespie::selectEvent(Infecteds &infecteds, RandomNumberGenerator &rng, double mutationRate, double mutationSD, Dynamics::DynamicsType type, bool evolution, bool mortality) {
         Dynamics *dynamics = createDynamics(type);
         double rand = getRandomUniform(rng);
+        double rateSum = Gillespie::rateSum(infecteds);
         double threshold = rateSum*rand;
         double sp = 0.;
         int index = 0;
@@ -69,6 +70,7 @@ namespace epinetworks {
         threshold = rand*eventRate;
         Individual &focal = infecteds.returnIndividual(index);
         if (evolution) {
+            if (mortality) {
             sp += mutationRate*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
             if (threshold < sp){
                 dynamics->transmission(focal, infecteds, rng, mutationSD, 1);
@@ -80,13 +82,37 @@ namespace epinetworks {
                 }
                 else {
                     sp += focal.getPathogen().getRecoveryRate();
-                    if (threshold <= sp) {
+                    if (threshold < sp) {
                         dynamics->recovery(focal, infecteds, index);
                      }
+                    else {
+                        sp += focal.getPathogen().getVirulence();
+                        if (threshold <= sp) {
+                            dynamics->virulence(focal, infecteds, index);
+                        }
+                    }
                    }
                }
            }
-        
+            else {
+                sp += mutationRate*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
+                if (threshold < sp){
+                    dynamics->transmission(focal, infecteds, rng, mutationSD, 1);
+                }
+                else {
+                    sp += (1 - mutationRate)*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
+                    if (threshold < sp) {
+                        dynamics->transmission(focal, infecteds, rng, mutationSD, 0);
+                    }
+                    else {
+                        sp += focal.getPathogen().getRecoveryRate();
+                        if (threshold <= sp) {
+                            dynamics->recovery(focal, infecteds, index);
+                        }
+                    }
+                }
+            }
+        }
         else {
             sp += focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
             if (threshold < sp){
