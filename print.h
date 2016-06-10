@@ -129,8 +129,8 @@ namespace epinetworks {
             myOutputVir << time << ",";
             std::vector<int> values = { 0, 4, 20, 50, 100, 10000 };
             for (size_t index = 0; index < values.size()-1; ++index) {
-                double averageVirulence = infecteds.getAverageVirulenceK(values[index], values[index]);
-                int count = infecteds.getIndividualsWithKNeighbours(values[index], values[index]);
+                double averageVirulence = infecteds.getAverageVirulenceK(values[index], values[index+1]);
+                int count = infecteds.getIndividualsWithKNeighbours(values[index], values[index+1]);
                 myOutputVir << count << "," << averageVirulence << ",";
             }
             myOutputVir << std::endl;

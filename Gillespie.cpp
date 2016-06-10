@@ -59,9 +59,10 @@ namespace epinetworks {
             if (sp <= threshold) {
                 ++index;
                 if (index > infecteds.getSizeInfected() - 1){
+                    int newRate = Gillespie::rateSum(infecteds);
                     std::cout << "no more susceptible neighbours" << std::endl;
                     std::cout << "infected size" << infecteds.getSizeInfected() << std::endl;
-                    exit(1);
+                    exit(7);
                 }
             }
         }
