@@ -34,7 +34,7 @@ namespace epinetworks {
     void Individual::getRecovered(Dynamics::DynamicsType type) {
         if (type == Dynamics::DynamicsType::SIR)
             _status = Status::recovered;
-        else
+        else 
             _status = Status::susceptible;
 		_pathogen = nullPathogen;
 	}
