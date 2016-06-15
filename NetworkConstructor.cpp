@@ -33,7 +33,7 @@ namespace epinetworks {
 	}
 
 	// Returns total # of stubs in the network
-	static const int totalStubs(Network &network) {
+	const int totalStubs(Network &network) {
 		int totalStubs = 0;
 		for (std::size_t i = 0u; i < network.size(); ++i) {
 				totalStubs += network[i].getStubs();
@@ -42,7 +42,7 @@ namespace epinetworks {
 	}
 
 	// Returns total # of stubs in the pool
-	static const int totalStubsPool(ConnectionPool &connectionPool) {
+	const int totalStubsPool(ConnectionPool &connectionPool) {
 		int totalStubs = 0;
 		for (size_t i = 0u; i < connectionPool.size(); ++i) {
 			totalStubs += connectionPool[i].getStubs();
@@ -77,7 +77,7 @@ namespace epinetworks {
 	}
 
 	// Connects two individuals
-	static void connect(NetworkNode &first, NetworkNode &second, Network &network)  {
+	void connect(NetworkNode &first, NetworkNode &second, Network &network)  {
 		first.setNeighbour(second);
 		second.setNeighbour(first);
 		second.reduceStubs();
@@ -87,10 +87,10 @@ namespace epinetworks {
 	// Makes a randomly linked network in which individuals' # of
 	// contacts is predetermined
 	static void makeRandomLinks(Network &network, RandomNumberGenerator &rng)  {
-		int totalNumberOfStubs = totalStubs(network);
+		//int totalNumberOfStubs = totalStubs(network);
 		ConnectionPool connectionPool;
 		makeConnectionPool(connectionPool, network);
-		int totalNumberOfStubsPool = totalStubsPool(connectionPool);
+		//int totalNumberOfStubsPool = totalStubsPool(connectionPool);
 		while (connectionPool.size() > 1) {
 			//int i = getRandom(connectionPool.size());
 			int i = 0;

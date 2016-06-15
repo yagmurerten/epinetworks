@@ -97,11 +97,8 @@ namespace epinetworks {
             std::string line2;
             std::getline(inputContacts, line2);
             std::stringstream ss2(line2);
-            if (i == 54)
-                int k = 120;
             int stubs = network[i].getStubs();
             for (std::size_t j = 0; j < stubs; ++j) {
-                int stubs2 = network[i].getStubs();
                 int coordContact;
                 ss2 >> coordContact;
                 NetworkNode &first = network[i];

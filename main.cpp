@@ -26,7 +26,6 @@
 using namespace epinetworks;
 
 int main(int, char *argv[]){
-    double fracTransmission;
     double mutationFrac;
     double mutationRate = 0.;
     double var;
@@ -36,6 +35,7 @@ int main(int, char *argv[]){
     double virulence;
     
     if (DYNAMICS_TYPE == Dynamics::DynamicsType::SIR) {
+        double fracTransmission;
         recovery = SIRparameters::RECOVERY;
         endtime = SIRparameters::ENDTIME;
         var = VARIANCE_K;
@@ -121,23 +121,13 @@ int main(int, char *argv[]){
 	for (std::size_t t = 0; t < network.size(); ++t) {
 		Individual::setSusceptibleNumber(dynamic_cast<Individual &>(network[t]));
 	}
-
-	for (std::size_t i = 0u; i < network.size(); ++i) {
-		// Throws an exception if the node is not an Individual.
-		Individual &individual = dynamic_cast<Individual &>(network[i]);
-		// Return null if the node is not an Individual.
-		Individual *individualPtr = dynamic_cast<Individual*>(&network[i]);
-		DEBUG_ASSERT(individualPtr != nullptr);
-	}
-    
+   
 	for (std::size_t replicate = 1u; replicate < NUMBER_OF_REPLICATES+1; ++replicate) {
         const std::string filenameVirulence = "virulence" + std::to_string(replicate) + ".txt";
 		const std::string filenameFinalSize = "finalsize.txt";
         const std::string filenameMaxIncidence = "maxIncidence.txt";
         const std::string filenameSnapshot = "degreeVir" + std::to_string(replicate) + ".csv";
-        std::ofstream myOutputSnap(filenameSnapshot, std::ios_base::app);
-        std::ofstream myOutputVirulence(filenameVirulence, std::ios_base::app);
-		std::ofstream finalSize(filenameFinalSize, std::ios_base::app);
+     	std::ofstream finalSize(filenameFinalSize, std::ios_base::app);
         std::ofstream maxInc(filenameMaxIncidence, std::ios_base::app);
 		double t = 0.;
 		double coefficient;
@@ -153,7 +143,7 @@ int main(int, char *argv[]){
             patientZero.getInfected(initialPathogen);
         }
         Infecteds infecteds(&patientZero,NETWORK_SIZE);
-        Individual::updateSusceptibleNeigbours(patientZero, Individual::UpdateRule::Down);
+        Individual::updateSusceptibleNeigbours(patientZero, -1);
 		bool endEpidemics = false;
 		//std::ofstream fileExtinctions("extinctions.txt", std::ios_base::app);
         bool outPutTaken =0;
@@ -220,4 +210,5 @@ int main(int, char *argv[]){
     fileLog << "succesful runs: " << succesfulRuns << std::endl;
     fileLog << "extinction count: " << extinctionCount << std::endl;
 }
+
 

@@ -9,10 +9,6 @@
 
 namespace epinetworks {
 
-	typedef std::uint32_t key_type;
-
-	typedef std::uint64_t hash_type;
-
 	typedef std::mt19937 RandomNumberGenerator;
 
 	// Create a random number generator initialized with @a seed. If seed is empty

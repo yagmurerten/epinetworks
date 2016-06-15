@@ -16,7 +16,7 @@ namespace epinetworks {
         static double rateSum(Infecteds &infecteds);
         static void selectEvent(Infecteds &infecteds, RandomNumberGenerator &rng, double mutationRate, double mutationSD, Dynamics::DynamicsType type, bool evolution, bool mortality);
 	private:
-		static double getEventRate(Individual &individual);
+		//static double getEventRate(Individual &individual);
 	};
 }
 

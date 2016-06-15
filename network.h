@@ -18,7 +18,7 @@ namespace epinetworks {
 	public:
 		typedef NodeVector::iterator iterator;
 
-		Network(size_t i);
+		explicit Network(size_t i);
 
 		void setNode(UpNetworkNode node) {
 			_vector.push_back(std::move(node));

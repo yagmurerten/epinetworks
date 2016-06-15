@@ -46,7 +46,7 @@ namespace epinetworks {
     }
 
     int Infecteds::getIndividualsWithKNeighbours(int minSizeNeighbour, int maxSizeNeighbour) {
-        double count = 0.;
+        int count = 0;
         for (std::size_t i = 0; i < _infecteds.size(); ++i) {
             Individual &ind = *_infecteds[i];
             if (ind.sizeNeighbour() > minSizeNeighbour && ind.sizeNeighbour() <= maxSizeNeighbour) {

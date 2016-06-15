@@ -17,10 +17,8 @@ namespace epinetworks {
 	// Mutates pathogen with a given s.d. around 0 mean mutation effect
 	Pathogen Pathogen::mutatePathogen(Pathogen const &initial, const double sdMutation,
 		RandomNumberGenerator &rng) {
-        double recovery = initial._recoveryRate;
-		double mutatedVirulence = initial._virulence;
 		double mutationStep = getRandomNormal(0, sdMutation, rng);
-		Pathogen mutatedPathogen(mutatedVirulence += mutationStep, initial._coefficient, recovery);
+        Pathogen mutatedPathogen(initial._virulence + mutationStep, initial._coefficient, initial._recoveryRate);
 		Pathogen nullPathogen(0.0, 0.0, 0.0);
 		if (mutatedPathogen.getVirulence() <= 0.0)
 			return nullPathogen;

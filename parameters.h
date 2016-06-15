@@ -7,13 +7,13 @@
 namespace epinetworks {
 
     //INPUT OPTIONS 
-    static const bool OPTION_NETWORK_INPUT = false;     
-    static const bool INPUT_PARAMETERS = false;         
-    static const bool MUTATIONS = true;
-    static const bool MORTALITY = true;
+    static bool OPTION_NETWORK_INPUT = false;     
+    static bool INPUT_PARAMETERS = false;         
+    static bool MUTATIONS = true;
+    static bool MORTALITY = true;
     //SIMULATION OPTIONS
     static const std::size_t NUMBER_OF_REPLICATES = 100;
-    static const Dynamics::DynamicsType DYNAMICS_TYPE = Dynamics::DynamicsType::SIS;
+    static Dynamics::DynamicsType DYNAMICS_TYPE = Dynamics::DynamicsType::SIS;
 
 	struct SIRparameters {
 		static const double SIR_full_coef;      // SIR fully-connected
@@ -38,8 +38,8 @@ namespace epinetworks {
 	};
     
 	//DEFAULT NETWORK OPTIONS
-	static const NetworkConstructor::NetworkType NETWORK_TYPE = NetworkConstructor::NetworkType::Gamma;
-	static double VARIANCE_K = 4;
+	static NetworkConstructor::NetworkType NETWORK_TYPE = NetworkConstructor::NetworkType::Gamma;
+	static double VARIANCE_K = 10;
 	static int NETWORK_SIZE = 10000;                 // # of individuals in the network
 
 	//DEFAULT PATHOGEN PARAMETERS

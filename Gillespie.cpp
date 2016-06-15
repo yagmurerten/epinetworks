@@ -19,26 +19,25 @@
 
 namespace epinetworks {
 
-
 	// Gets the total event rate of a single individual 
-	double Gillespie::getEventRate(Individual &individual) {
-		double eventRate = individual.getPathogen().getTransmission()*individual.sizeSusceptibleNeighbours()
-            + individual.getPathogen().getVirulence() + individual.getPathogen().getRecoveryRate();
-		return eventRate;
-	}
+	//double Gillespie::getEventRate(Individual &individual) {
+	//	double eventRate = individual.getPathogen().getTransmission()*individual.sizeSusceptibleNeighbours()
+ //           + individual.getPathogen().getVirulence() + individual.getPathogen().getRecoveryRate();
+	//	return eventRate;
+	//}
 
 	// Gets the total event rate in the population
     double Gillespie::rateSum(Infecteds &infecteds) {
 		double rateSum = 0.;
 		for (size_t i = 0; i < infecteds.getSizeInfected(); ++i) {
-			rateSum += getEventRate(infecteds.returnIndividual(i));
+			rateSum += (infecteds.returnIndividual(i)).getEventRate();
 		}
 		return rateSum;
 	}
 
 	// Selects the next individual to have an event
 	// and the next event to happen.
-
+   
     static Dynamics *createDynamics(Dynamics::DynamicsType type) {
         if (type == Dynamics::DynamicsType::SIS)
             return new DynamicsSIS;
@@ -54,12 +53,12 @@ namespace epinetworks {
         int index = 0;
         double eventRate = 0.;
         while (sp <= threshold) {
-            eventRate = getEventRate(infecteds.returnIndividual(index));
+            eventRate = (infecteds.returnIndividual(index)).getEventRate();
             sp += eventRate;
             if (sp <= threshold) {
                 ++index;
                 if (index > infecteds.getSizeInfected() - 1){
-                    int newRate = Gillespie::rateSum(infecteds);
+                    //double newRate = Gillespie::rateSum(infecteds);
                     std::cout << "no more susceptible neighbours" << std::endl;
                     std::cout << "infected size" << infecteds.getSizeInfected() << std::endl;
                     exit(7);
@@ -70,6 +69,7 @@ namespace epinetworks {
         rand = getRandomUniform(rng);
         threshold = rand*eventRate;
         Individual &focal = infecteds.returnIndividual(index);
+
         if (evolution) {
             if (mortality) {
             sp += mutationRate*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
@@ -126,6 +126,7 @@ namespace epinetworks {
                 }
             }
         }
+        delete dynamics;
     }
        
  }

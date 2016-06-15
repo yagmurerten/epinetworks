@@ -1,4 +1,4 @@
-#include "individual.h"
+#include "Individual.h"
 #include "pathogen.h"
 #include "random.h"
 
@@ -15,28 +15,27 @@ namespace epinetworks {
 	// Constructor for uninfected individuals
 	Individual::Individual (int numberOfContacts) :
 		_status(Status::susceptible), _pathogen(nullPathogen), 
-		NetworkNode(numberOfContacts) {};
+		NetworkNode(numberOfContacts), _susceptibleNeighbours(numberOfContacts),
+        _eventRate(0.) {};
 
-	// Sets # of susceptible neighbours for one individual
+	 //Sets # of susceptible neighbours for one individual
 	void Individual::setSusceptibleNumber(Individual &individual){
 		individual._susceptibleNeighbours = individual.sizeNeighbour();
 	}
 
-	
 	// Becomes susceptible
 	void Individual::getSusceptible() {
 		_status = Status::susceptible;
 		_pathogen = nullPathogen;
+        _eventRate = 0.;
 	}
 	
 
 	// Becomes recovered
-    void Individual::getRecovered(Dynamics::DynamicsType type) {
-        if (type == Dynamics::DynamicsType::SIR)
-            _status = Status::recovered;
-        else 
-            _status = Status::susceptible;
+    void Individual::getRecovered() {
+        _status = Status::recovered;
 		_pathogen = nullPathogen;
+        _eventRate = 0.;
 	}
 
 
@@ -44,7 +43,18 @@ namespace epinetworks {
 	void Individual::getInfected(Pathogen &pathogen) {
 		_status = Status::infected;
 		_pathogen = pathogen;
+        _eventRate = _pathogen.getTransmission()*_susceptibleNeighbours +
+            _pathogen.getRecoveryRate() + _pathogen.getVirulence();
 	}
+
+    double Individual::getEventRate(){
+        return _eventRate;
+    }
+
+    void Individual::updateEventRate(){
+        _eventRate = _pathogen.getTransmission()*_susceptibleNeighbours +
+            _pathogen.getRecoveryRate() + _pathogen.getVirulence();
+    }
 
 	// Returns the status of an individual
 	Individual::Status Individual::getStatus() const {
@@ -62,14 +72,14 @@ namespace epinetworks {
 	}
 	
 	// Decreases or increases # of susceptible neighbours
-	void Individual::updateSusceptibleNeigbours(Individual &individual,  UpdateRule rule){
-		for (std::size_t i = 0; i < individual.sizeNeighbour(); ++i) {
-			Individual &neighbour = dynamic_cast<Individual &>(individual.getNeighbour(i));
-			if (rule == UpdateRule::Up)
-				++neighbour._susceptibleNeighbours;
-			if (rule == UpdateRule::Down) {
-				--neighbour._susceptibleNeighbours;
-			}
-		}
+	void Individual::updateSusceptibleNeigbours(Individual &individual,  int update){
+        for (std::size_t i = 0; i < individual.sizeNeighbour(); ++i) {
+            Individual &neighbour = dynamic_cast<Individual &>(individual.getNeighbour(i));
+            neighbour._susceptibleNeighbours += update;
+            neighbour.updateEventRate();
+        }
 	}
+
+
+
 }

@@ -1,7 +1,6 @@
 #ifndef INDIVIDUAL_H
 #define INDIVIDUAL_H
 
-#include "Dynamics.h"
 #include "pathogen.h"
 #include "networkNode.h"
 
@@ -15,26 +14,23 @@ namespace epinetworks {
 			infected,
 			recovered
 		};
-
-		enum class UpdateRule {
-			Up,
-			Down
-		};
 		void getInfected(Pathogen &pathogen);
 		void getSusceptible();
-		void getRecovered(Dynamics::DynamicsType type);
+		void getRecovered();
+        double getEventRate();
+        void updateEventRate();
 		Individual::Status getStatus() const;
 		Pathogen getPathogen(); 
-		static void updateSusceptibleNeigbours(Individual &individual, UpdateRule rule);
+		static void updateSusceptibleNeigbours(Individual &individual, int update);
 		int sizeSusceptibleNeighbours();
 		static void setSusceptibleNumber(Individual &individual);
 	private:
 		Individual(const Individual &) = delete;
 		Individual &operator=(const Individual &) = delete;
-
 		int _susceptibleNeighbours;
 		Pathogen _pathogen;
 		Individual::Status _status;
+        double _eventRate;
 	};
 }
 
