@@ -104,8 +104,8 @@ namespace epinetworks {
                 NetworkNode &first = network[i];
                 NetworkNode &second = network[coordContact];
                 if (first.isNeighbour(second) == false){
-                    first.setNeighbour(second);
-                    second.setNeighbour(first);
+                    first.setNeighbourCoord(second);
+                    second.setNeighbourCoord(first);
                     second.reduceStubs();
                     first.reduceStubs();
                 }

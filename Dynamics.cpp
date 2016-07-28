@@ -13,8 +13,8 @@ namespace epinetworks {
             int newInfected;
             do {
                 newInfected = getRandom(focal.getNumberOfContacts(), rng);
-            } while (dynamic_cast<Individual &>(focal.getNeighbour(newInfected)).getStatus() != Individual::Status::susceptible);
-            Individual &newInfectedNeighbour = dynamic_cast<Individual &>(focal.getNeighbour(newInfected));
+            } while (focal.getNeighbour(newInfected).getStatus() != Individual::Status::susceptible);
+            Individual &newInfectedNeighbour = focal.getNeighbour(newInfected);
             if (mutate) {
                 Pathogen mutatedPathogen = Pathogen::mutatePathogen(focal.getPathogen(), mutationSD, rng);
                 newInfectedNeighbour.getInfected(mutatedPathogen);
@@ -25,7 +25,7 @@ namespace epinetworks {
                 if (newInfectedNeighbour.sizeSusceptibleNeighbours() < 0)
                     std::cout << "stop 2" << std::endl;
             }
-            Individual::updateSusceptibleNeigbours(newInfectedNeighbour, -1);
+            newInfectedNeighbour.updateSusceptibleNeigbours(-1);
             infecteds.addInfected(&newInfectedNeighbour);
         }
     }

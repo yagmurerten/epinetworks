@@ -8,11 +8,13 @@
 #include <string>
 #include <vector>
 
+#include "Individual.h"
+
 namespace epinetworks {
 
 	class Network {
 	private:
-		typedef std::unique_ptr<NetworkNode> UpNetworkNode;
+		typedef std::unique_ptr<Individual> UpNetworkNode;
 		typedef std::vector<UpNetworkNode> NodeVector;
 
 	public:
@@ -37,8 +39,8 @@ namespace epinetworks {
 
 		bool isValid() const;
 
-		const NetworkNode &operator[](size_t i) const;
-		NetworkNode &operator[](size_t i);
+        const Individual &operator[](size_t i) const;
+        Individual &operator[](size_t i);
 
 
 	private:

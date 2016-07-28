@@ -79,10 +79,10 @@ namespace epinetworks {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// Outputs virulence in every time step it is called
-		static void virulenceOutput(std::string filenameVirulence, int time, 
+		static void virulenceOutput(std::string filenameVirulence, double time, 
 			Infecteds &infecteds){
 			std::ofstream myOutput(filenameVirulence, std::ios_base::app);
-            if (time == 0)
+            if (time == 0.)
                 myOutput << "time, avg_virulence, sd_virulence, avg_neighbours, number_infected" << std::endl;
 			myOutput << time;
             double averageVirulence = infecteds.getAverageVirulence();
@@ -94,7 +94,7 @@ namespace epinetworks {
 		static void statusOutput(std::string filenameVirulenceStatus, Network &network){
 			std::ofstream myOutput(filenameVirulenceStatus, std::ios_base::app);
 			for (std::size_t i = 0; i < network.size(); ++i) {
-				Individual &ind = dynamic_cast<Individual &>(network[i]);
+				Individual &ind = (network[i]);
 				int status = static_cast<int>(ind.getStatus());
 				myOutput << status << "\t";
 			}
@@ -104,7 +104,7 @@ namespace epinetworks {
 		static void virLevel(std::string filenameVirLevel, Network &network){
 			std::ofstream myOutput(filenameVirLevel, std::ios_base::app);
 			for (std::size_t i = 0; i < network.size(); ++i) {
-				Individual &ind = dynamic_cast<Individual &>(network[i]);
+				Individual &ind = (network[i]);
 				double level = ind.getPathogen().getVirulence();
 				myOutput << level << "\t";
 			}
@@ -144,6 +144,16 @@ namespace epinetworks {
 				outputInfecteds << ind.getCoordinate() << "," << ind.sizeNeighbour() << std::endl;
 			}
 		}
+
+        static void printStates(const std::vector<std::vector<int>> &states, int replicate) {
+            for (std::size_t i = 0u; i < states.size(); ++i) {
+                std::ofstream outputState("STATES/state" + std::to_string(replicate) + "_" + std::to_string(i) + ".csv", std::ios_base::app);
+                for (std::size_t j = 0u; j < states[i].size(); ++j) {                
+                outputState << states[i][j] << ",";
+                }
+                outputState << std::endl;
+            }
+        }
 	};
 }
 #endif // PRINT_H

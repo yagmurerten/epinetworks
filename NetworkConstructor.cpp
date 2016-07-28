@@ -77,9 +77,11 @@ namespace epinetworks {
 	}
 
 	// Connects two individuals
-	void connect(NetworkNode &first, NetworkNode &second, Network &network)  {
-		first.setNeighbour(second);
-		second.setNeighbour(first);
+	void connect(Individual &first, Individual &second, Network &network)  {
+		first.setNeighbourCoord(second);
+		second.setNeighbourCoord(first);
+        first.setNeighbour(second);
+        second.setNeighbour(first);
 		second.reduceStubs();
 		first.reduceStubs();
 	}
@@ -103,7 +105,7 @@ namespace epinetworks {
 				if (allNeighbour == true) {
 					std::cout << "all neighbour" << std::endl;
 					while (connectionPool.size() > 0) {
-						NetworkNode &node = connectionPool[connectionPool.size() - 1];
+						Individual &node = connectionPool[connectionPool.size() - 1];
 						node.updateConnectionZero();
 						connectionPool.remove(connectionPool.size() - 1);
 					}
@@ -111,11 +113,11 @@ namespace epinetworks {
 				}
 			}
 			int j;
-			NetworkNode &first = connectionPool[i];
+			Individual &first = connectionPool[i];
 			do {
 				j = getRandom(connectionPool.size(), rng);
 			} while ((i == j));
-			NetworkNode &second = connectionPool[j];
+			Individual &second = connectionPool[j];
 			if (first.isNeighbour(second) == false) {
 				if ((second.getStubs() != 0) && (first.getStubs() != 0))
 					connect(first, second, network);

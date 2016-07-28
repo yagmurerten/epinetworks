@@ -4,6 +4,8 @@
 #include "pathogen.h"
 #include "networkNode.h"
 
+#include <vector>
+
 namespace epinetworks {
 
 	class Individual : public NetworkNode {
@@ -21,9 +23,17 @@ namespace epinetworks {
         void updateEventRate();
 		Individual::Status getStatus() const;
 		Pathogen getPathogen(); 
-		static void updateSusceptibleNeigbours(Individual &individual, int update);
+		void updateSusceptibleNeigbours(int update);
 		int sizeSusceptibleNeighbours();
-		static void setSusceptibleNumber(Individual &individual);
+		void setSusceptibleNumber();
+        void updateStates();
+        std::vector<int> getStates();
+        Individual& getNeighbour(const int i){
+            return *_neighbours[i];
+        }
+        void setNeighbour(Individual &node){
+            _neighbours.push_back(&node);
+        }
 	private:
 		Individual(const Individual &) = delete;
 		Individual &operator=(const Individual &) = delete;
@@ -31,6 +41,8 @@ namespace epinetworks {
 		Pathogen _pathogen;
 		Individual::Status _status;
         double _eventRate;
+        std::vector<int> _states;
+        std::vector<Individual *> _neighbours;
 	};
 }
 

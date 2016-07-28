@@ -1,4 +1,5 @@
 #include "network.h"
+
 #include "random.h"
 
 #include <fstream>
@@ -26,16 +27,16 @@ namespace epinetworks {
 	}
 
 	// const [] operator
-	const NetworkNode &Network::operator[](size_t i) const {
+    const Individual &Network::operator[](size_t i) const {
 		DEBUG_ASSERT(i < _vector.size());
-		const NetworkNode *ptr = _vector[i].get();
+        const Individual *ptr = _vector[i].get();
 		DEBUG_ASSERT(ptr != nullptr);
 		return *ptr;
 	}
 
 	// [] operator
-	NetworkNode &Network::operator[](size_t i){
-		return const_cast<NetworkNode &>(
+    Individual &Network::operator[](size_t i){
+        return const_cast<Individual &>(
 			static_cast<const Network &>(*this)[i]);
 	}
 }

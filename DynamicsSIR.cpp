@@ -20,7 +20,7 @@ namespace epinetworks {
     // Disease induced mortality event with S replacement
     void DynamicsSIR::virulence(Individual &focal, Infecteds &infecteds, std::size_t index) {
         focal.getSusceptible();
-        Individual::updateSusceptibleNeigbours(focal, 1);
+        focal.updateSusceptibleNeigbours(1);
         infecteds.remove(index);
     }
 

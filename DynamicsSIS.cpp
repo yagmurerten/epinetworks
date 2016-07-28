@@ -9,14 +9,14 @@ namespace epinetworks {
 
     void DynamicsSIS::recovery(Individual &focal, Infecteds &infecteds, std::size_t index)  {
         focal.getSusceptible();
-        Individual::updateSusceptibleNeigbours(focal, 1);
+        focal.updateSusceptibleNeigbours(1);
         infecteds.remove(index);
     }
 
     // Disease induced mortality event with S replacement
     void DynamicsSIS::virulence(Individual &focal, Infecteds &infecteds, std::size_t index) {
         focal.getSusceptible();
-        Individual::updateSusceptibleNeigbours(focal, 1);
+        focal.updateSusceptibleNeigbours(1);
         infecteds.remove(index);
     }
 

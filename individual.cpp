@@ -16,11 +16,15 @@ namespace epinetworks {
 	Individual::Individual (int numberOfContacts) :
 		_status(Status::susceptible), _pathogen(nullPathogen), 
 		NetworkNode(numberOfContacts), _susceptibleNeighbours(numberOfContacts),
-        _eventRate(0.) {};
+        _eventRate(0.) { 
+        _states.reserve(5);
+        for (size_t i = 0u; i < numberOfContacts; ++i)
+            _states.push_back(0);
+    };
 
 	 //Sets # of susceptible neighbours for one individual
-	void Individual::setSusceptibleNumber(Individual &individual){
-		individual._susceptibleNeighbours = individual.sizeNeighbour();
+	void Individual::setSusceptibleNumber(){
+		_susceptibleNeighbours = sizeNeighbour();
 	}
 
 	// Becomes susceptible
@@ -71,15 +75,28 @@ namespace epinetworks {
 		return _susceptibleNeighbours;
 	}
 	
+    void Individual::updateStates(){
+        _states.clear();
+        _states.push_back(static_cast<int>(getStatus()));
+        for (std::size_t i = 0; i < sizeNeighbour(); ++i) {
+            Individual &neighbour = getNeighbour(i);
+            _states.push_back(static_cast<int>(neighbour.getStatus()));
+        }
+    }
+
 	// Decreases or increases # of susceptible neighbours
-	void Individual::updateSusceptibleNeigbours(Individual &individual,  int update){
-        for (std::size_t i = 0; i < individual.sizeNeighbour(); ++i) {
-            Individual &neighbour = dynamic_cast<Individual &>(individual.getNeighbour(i));
+	void Individual::updateSusceptibleNeigbours(int update){
+        updateStates();
+        for (std::size_t i = 0; i < sizeNeighbour(); ++i) {
+            Individual &neighbour = getNeighbour(i);
             neighbour._susceptibleNeighbours += update;
             neighbour.updateEventRate();
+            neighbour.updateStates();
         }
 	}
 
-
+    std::vector<int> Individual::getStates() {
+        return _states;
+    }
 
 }

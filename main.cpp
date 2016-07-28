@@ -22,8 +22,11 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
-using namespace epinetworks;
+//using namespace epinetworks;
+
+typedef std::vector<std::vector<int>> States;
 
 int main(int, char *argv[]){
     double mutationFrac;
@@ -34,44 +37,44 @@ int main(int, char *argv[]){
     double transmission;
     double virulence;
     
-    if (DYNAMICS_TYPE == Dynamics::DynamicsType::SIR) {
+    if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR) {
         double fracTransmission;
-        recovery = SIRparameters::RECOVERY;
-        endtime = SIRparameters::ENDTIME;
-        var = VARIANCE_K;
-        if (INPUT_PARAMETERS) {
+        recovery = epinetworks::SIRparameters::RECOVERY;
+        endtime = epinetworks::SIRparameters::ENDTIME;
+        var = epinetworks::VARIANCE_K;
+        if (epinetworks::INPUT_PARAMETERS) {
             fracTransmission = static_cast<double>(atoi(argv[1]));
-            if (MUTATIONS)
+            if (epinetworks::MUTATIONS)
                 mutationFrac = static_cast<double>(atoi(argv[2]));
         }
         else {
-            fracTransmission = SIRparameters::TRANSMISSION;
-            if (MUTATIONS)
-                mutationFrac = evoParameters::MUTATION_FRAC;
-            if (MORTALITY)
-                virulence = SIRparameters::INITIAL_VIRULENCE;
+            fracTransmission = epinetworks::SIRparameters::TRANSMISSION;
+            if (epinetworks::MUTATIONS)
+                mutationFrac = epinetworks::evoParameters::MUTATION_FRAC;
         }
+        if (epinetworks::MORTALITY)
+            virulence = epinetworks::SIRparameters::INITIAL_VIRULENCE;
         transmission = fracTransmission / 100.0;
     }
 
-    if (DYNAMICS_TYPE == Dynamics::DynamicsType::SIS) {
-        recovery = SISparameters::RECOVERY;
-        endtime = SISparameters::ENDTIME;
-        if (INPUT_PARAMETERS) {
+    if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIS) {
+        recovery = epinetworks::SISparameters::RECOVERY;
+        endtime = epinetworks::SISparameters::ENDTIME;
+        if (epinetworks::INPUT_PARAMETERS) {
             var = static_cast<double>(atoi(argv[1]));
-            if (MUTATIONS)
+            if (epinetworks::MUTATIONS)
                 mutationFrac = static_cast<double>(atoi(argv[2]));
         }
         else {
-            var = VARIANCE_K;
-            if (MUTATIONS)
-                mutationFrac = evoParameters::MUTATION_FRAC;
-            if (MORTALITY)
-                virulence = SISparameters::INITIAL_VIRULENCE;
+            var = epinetworks::VARIANCE_K;
+            if (epinetworks::MUTATIONS)
+                mutationFrac = epinetworks::evoParameters::MUTATION_FRAC;
         }
+        if (epinetworks::MORTALITY)
+            virulence = epinetworks::SISparameters::INITIAL_VIRULENCE;
     }
     
-    if (MUTATIONS)
+    if (epinetworks::MUTATIONS)
         mutationRate = 1.0 / mutationFrac;
 
     int succesfulRuns = 0;
@@ -82,89 +85,104 @@ int main(int, char *argv[]){
     std::ofstream logParameters(parameterFileName, std::ios_base::app);
     
     logParameters << "mutation rate: " << mutationRate << std::endl;
-    logParameters << "mutation sd: " << evoParameters::MUTATION_SD << std::endl;
+    logParameters << "mutation sd: " << epinetworks::evoParameters::MUTATION_SD << std::endl;
     logParameters << "endtime: " << endtime << std::endl;
-    logParameters << "network size: " << NETWORK_SIZE << std::endl;
+    logParameters << "network size: " << epinetworks::NETWORK_SIZE << std::endl;
     logParameters << "recovery rate: " << recovery << std::endl;
-    if (DYNAMICS_TYPE == Dynamics::DynamicsType::SIR) {
+    if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR) {
         logParameters << "transmission: " << transmission << std::endl;
         logParameters << "R0: " << transmission / recovery << std::endl;
     }
-    if (MORTALITY)
+    if (epinetworks::MORTALITY)
         logParameters << "initial virulence: " << virulence << std::endl;
 
 	const std::vector<int> seed;
-	RandomNumberGenerator rng = create_random_number_generator(seed);
+    epinetworks::RandomNumberGenerator rng = epinetworks::create_random_number_generator(seed);
 
 	const std::string filenameNetwork = "networkNew";
-    Network network(NETWORK_SIZE);
+    epinetworks::Network network(epinetworks::NETWORK_SIZE);
 
-    if (OPTION_NETWORK_INPUT == false) {
-        NetworkGenerator::networkWithoutInput(network, NETWORK_TYPE, var, rng, parameterFileName);
-        if (NETWORK_TYPE != NetworkConstructor::NetworkType::FullyConnected){
-            Print::networkOutput(filenameNetwork, network);
-            Print::printNetwork(filenameNetwork, network);
-            Print::printEdgeList(filenameNetwork, network);
+    if (epinetworks::OPTION_NETWORK_INPUT == false) {
+        epinetworks::NetworkGenerator::networkWithoutInput(network, epinetworks::NETWORK_TYPE, var, rng, parameterFileName);
+        if (epinetworks::NETWORK_TYPE != epinetworks::NetworkConstructor::NetworkType::FullyConnected){
+            epinetworks::Print::networkOutput(filenameNetwork, network);
+            epinetworks::Print::printNetwork(filenameNetwork, network);
+            epinetworks::Print::printEdgeList(filenameNetwork, network);
         }
     }   
 
-	if (OPTION_NETWORK_INPUT == true) {
+    if (epinetworks::OPTION_NETWORK_INPUT == true) {
 		logParameters << "option network: true" << std::endl;
-        NetworkGenerator::inputNetwork(network, filenameNetwork);
+        epinetworks::NetworkGenerator::inputNetwork(network, filenameNetwork);
 		DEBUG_ASSERT(network.isValid());
 		std::string filenameNetwork2 = filenameNetwork + "2";
-		Print::networkOutput(filenameNetwork2, network);
-		Print::printNetwork(filenameNetwork2, network);
-		Print::printEdgeList(filenameNetwork2, network);
+        epinetworks::Print::networkOutput(filenameNetwork2, network);
+        epinetworks::Print::printNetwork(filenameNetwork2, network);
+        epinetworks::Print::printEdgeList(filenameNetwork2, network);
 	}
 
 	for (std::size_t t = 0; t < network.size(); ++t) {
-		Individual::setSusceptibleNumber(dynamic_cast<Individual &>(network[t]));
+		network[t].setSusceptibleNumber();
 	}
    
-	for (std::size_t replicate = 1u; replicate < NUMBER_OF_REPLICATES+1; ++replicate) {
+    std::unique_ptr<epinetworks::Dynamics> currentDynamics = epinetworks::Gillespie::createDynamics(epinetworks::DYNAMICS_TYPE);
+
+    bool epiComplete = false;
+
+    for (std::size_t replicate = 1u; replicate < epinetworks::NUMBER_OF_REPLICATES + 1; ++replicate) {
         const std::string filenameVirulence = "virulence" + std::to_string(replicate) + ".txt";
 		const std::string filenameFinalSize = "finalsize.txt";
         const std::string filenameMaxIncidence = "maxIncidence.txt";
         const std::string filenameSnapshot = "degreeVir" + std::to_string(replicate) + ".csv";
      	std::ofstream finalSize(filenameFinalSize, std::ios_base::app);
         std::ofstream maxInc(filenameMaxIncidence, std::ios_base::app);
+
+        States states;
+        states.reserve(10000);
+        std::vector<int> initialStates;
+        initialStates.reserve(5);
+        for (size_t i = 0; i < 5; ++i)
+            initialStates.push_back(0);
+        for (size_t i = 0; i < network.size(); ++i)
+            states.push_back(initialStates);
+        
 		double t = 0.;
 		double coefficient;
-		assignCoefficient(coefficient, NETWORK_TYPE, DYNAMICS_TYPE);
-        int i = getRandom(network.size(), rng);
-        Individual &patientZero = dynamic_cast<Individual&>(network[i]);
-        if (DYNAMICS_TYPE == Dynamics::DynamicsType::SIR) {
-            Pathogen initialPathogen(transmission*coefficient, recovery);   
+        epinetworks::assignCoefficient(coefficient, epinetworks::NETWORK_TYPE, epinetworks::DYNAMICS_TYPE);
+        int i = epinetworks::getRandom(network.size(), rng);
+        epinetworks::Individual &patientZero = network[i];
+        if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR) {
+            epinetworks::Pathogen initialPathogen(transmission*coefficient, recovery);
             patientZero.getInfected(initialPathogen);
         }
         else {
-            Pathogen initialPathogen(virulence, coefficient, recovery);
+            epinetworks::Pathogen initialPathogen(virulence, coefficient, recovery);
             patientZero.getInfected(initialPathogen);
         }
-        Infecteds infecteds(&patientZero,NETWORK_SIZE);
-        Individual::updateSusceptibleNeigbours(patientZero, -1);
+        epinetworks::Infecteds infecteds(&patientZero, epinetworks::NETWORK_SIZE);
+        patientZero.updateSusceptibleNeigbours(-1);
 		bool endEpidemics = false;
 		//std::ofstream fileExtinctions("extinctions.txt", std::ios_base::app);
         bool outPutTaken =0;
-        if (MUTATIONS) {
-            Print::virulenceOutput(filenameVirulence, 0, infecteds);
-            Print::virulenceSnapShot(filenameSnapshot, 0, infecteds);
+        if (epinetworks::MUTATIONS) {
+            epinetworks::Print::virulenceOutput(filenameVirulence, 0, infecteds);
+            epinetworks::Print::virulenceSnapShot(filenameSnapshot, 0, infecteds);
             outPutTaken = 1;
         }
         int maxIncidence = 0;
+        
 		do {
-                double tau = -log(getRandomUniform(rng)) / Gillespie::rateSum(infecteds);
+            double tau = -log(epinetworks::getRandomUniform(rng)) / epinetworks::Gillespie::rateSum(infecteds);
 
-				Gillespie::selectEvent(infecteds, rng, mutationRate, evoParameters::MUTATION_SD, DYNAMICS_TYPE, MUTATIONS, MORTALITY);
+            epinetworks::Gillespie::selectEvent(infecteds, rng, mutationRate, epinetworks::evoParameters::MUTATION_SD, currentDynamics, epinetworks::MUTATIONS, epinetworks::MORTALITY, states);
 
 				t += tau;
 				
-                if (MUTATIONS) {
+                if (epinetworks::MUTATIONS) {
                     if (static_cast<int>(round(t)) % 5 == 0) {
                         if (outPutTaken == 0) {
-                            Print::virulenceOutput(filenameVirulence, static_cast<int>(round(t)), infecteds);
-                            Print::virulenceSnapShot(filenameSnapshot, static_cast<int>(round(t)), infecteds);
+                            epinetworks::Print::virulenceOutput(filenameVirulence, static_cast<int>(round(t)), infecteds);
+                            epinetworks::Print::virulenceSnapShot(filenameSnapshot, static_cast<int>(round(t)), infecteds);
                             outPutTaken = 1;
                         }
                     }
@@ -173,37 +191,53 @@ int main(int, char *argv[]){
                         outPutTaken = 0;
                     }
                 }
+                else {
+                    epinetworks::Print::virulenceOutput(filenameVirulence, t, infecteds);
+                    epinetworks::Print::printStates(states, replicate);
+                }
 				
                 int infectedSize = infecteds.getSizeInfected();
                 if (infectedSize > maxIncidence) {
                     maxIncidence = infectedSize;
                 }
+
 				if (infecteds.getSizeInfected() == 0) {
+                    fileLog << replicate << "\t" << infecteds.getSizeInfected() << "\t" << t << std::endl;
 					//std::cout << "end of epidemics" << std::endl;
-                    if (DYNAMICS_TYPE == Dynamics::DynamicsType::SIR) {
+                    if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR) {
                         int finalRecovered = 0;
                         for (std::size_t i = 0u; i < network.size(); ++i) {
-                            if (dynamic_cast<Individual&>(network[i]).getStatus() == Individual::Status::recovered)
+                            if ((network[i]).getStatus() == epinetworks::Individual::Status::recovered)
                                 ++finalRecovered;
                         }
                         finalSize << replicate << "\t" << finalRecovered << std::endl;
+                        if (finalRecovered > 100) {
+                            epiComplete = true;
+                        }
                     }
                     maxInc << replicate << "\t" << maxIncidence << std::endl;
 					endEpidemics = true;
-					break;
+                    break;
 				}
 
 		} while (t < endtime && endEpidemics==false); 
+        epinetworks::Print::virulenceOutput(filenameVirulence, static_cast<int>(round(t)), infecteds);
+        epinetworks::Print::virulenceSnapShot(filenameSnapshot, static_cast<int>(round(t)), infecteds);
 		for (std::size_t t = 0; t < network.size(); ++t) {
-			dynamic_cast<Individual &>(network[t]).getSusceptible();
-			Individual::setSusceptibleNumber(dynamic_cast<Individual &>(network[t]));
+			network[t].getSusceptible();
+            network[t].setSusceptibleNumber();
 		}
         if (t >= endtime) {
             ++succesfulRuns;
         }
         else
             ++extinctionCount;
-        if (DYNAMICS_TYPE == Dynamics::DynamicsType::SIS && succesfulRuns >= 10) {
+        if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIS && succesfulRuns >= 10) {
+            break;
+        }
+        if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR && epiComplete == true) {
+            fileLog << "complete run: " << replicate << std::endl;
+            ++succesfulRuns;
             break;
         }
 	}

@@ -4,6 +4,7 @@
 #include "random.h"
 #include "Dynamics.h"
 
+#include <memory>
 #include <vector>
 
 namespace epinetworks {
@@ -14,7 +15,8 @@ namespace epinetworks {
 	class Gillespie {
 	public:
         static double rateSum(Infecteds &infecteds);
-        static void selectEvent(Infecteds &infecteds, RandomNumberGenerator &rng, double mutationRate, double mutationSD, Dynamics::DynamicsType type, bool evolution, bool mortality);
+        static void selectEvent(Infecteds &infecteds, RandomNumberGenerator &rng, double mutationRate, double mutationSD, std::unique_ptr<Dynamics> &dynamics, bool evolution, bool mortality, std::vector<std::vector<int>> &states);
+        static std::unique_ptr<Dynamics> createDynamics(Dynamics::DynamicsType type);
 	private:
 		//static double getEventRate(Individual &individual);
 	};

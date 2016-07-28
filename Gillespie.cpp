@@ -38,14 +38,23 @@ namespace epinetworks {
 	// Selects the next individual to have an event
 	// and the next event to happen.
    
-    static Dynamics *createDynamics(Dynamics::DynamicsType type) {
+    std::unique_ptr<Dynamics> Gillespie::createDynamics(Dynamics::DynamicsType type) {
         if (type == Dynamics::DynamicsType::SIS)
-            return new DynamicsSIS;
-        return new DynamicsSIR;
+            return std::unique_ptr<Dynamics>(new DynamicsSIS);
+        return std::unique_ptr<Dynamics>(new DynamicsSIR);
     }
 
-    void Gillespie::selectEvent(Infecteds &infecteds, RandomNumberGenerator &rng, double mutationRate, double mutationSD, Dynamics::DynamicsType type, bool evolution, bool mortality) {
-        Dynamics *dynamics = createDynamics(type);
+    void updateStates(Individual &ind, std::vector<std::vector<int>> &states){
+        int coord = ind.getCoordinate();
+        states[coord] = ind.getStates();
+        for (size_t i = 0; i < ind.sizeNeighbour(); ++i) {
+            coord= ind.getNeighbour(i).getCoordinate();
+            states[coord] = ind.getNeighbour(i).getStates();
+        }
+    }
+
+    void Gillespie::selectEvent(Infecteds &infecteds, RandomNumberGenerator &rng, double mutationRate, double mutationSD, 
+        std::unique_ptr<Dynamics> &dynamics, bool evolution, bool mortality, std::vector<std::vector<int>> &states) {
         double rand = getRandomUniform(rng);
         double rateSum = Gillespie::rateSum(infecteds);
         double threshold = rateSum*rand;
@@ -126,7 +135,7 @@ namespace epinetworks {
                 }
             }
         }
-        delete dynamics;
+        updateStates(focal, states);
     }
        
  }

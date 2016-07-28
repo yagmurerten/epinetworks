@@ -9,7 +9,7 @@
 
 namespace epinetworks {
 	
-	class NetworkNode;
+	class Individual;
 
 	class ConnectionPool {
 	public:
@@ -18,7 +18,7 @@ namespace epinetworks {
 			return _pool.empty();
 		}
 
-		void add(NetworkNode &node){
+        void add(Individual &node){
 			_pool.push_back(&node);
 		}
 
@@ -37,13 +37,13 @@ namespace epinetworks {
 			return _pool.size();
 		}
 
-		const NetworkNode& operator[](int i) const {
-			const NetworkNode *ptr = _pool[i];
+        const Individual& operator[](int i) const {
+            const Individual *ptr = _pool[i];
 			return *ptr;
 		}
 
-		NetworkNode& operator[](int i){
-			return const_cast<NetworkNode &>(
+        Individual& operator[](int i){
+            return const_cast<Individual &>(
 				static_cast<const ConnectionPool &>(*this)[i]);
 		}
 
@@ -51,17 +51,17 @@ namespace epinetworks {
 			_pool.reserve(size);
 		}
 
-		std::vector<NetworkNode*>::iterator begin(){
+        std::vector<Individual*>::iterator begin(){
 			return _pool.begin();
 		}
 
-		std::vector<NetworkNode*>::iterator end(){
+        std::vector<Individual*>::iterator end(){
 			return _pool.end();
 		}
 
 	private:
 
-		std::vector<NetworkNode*> _pool;
+		std::vector<Individual*> _pool;
 
 	};
 

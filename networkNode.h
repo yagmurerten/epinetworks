@@ -33,7 +33,7 @@ namespace epinetworks {
 		// Sets the number of stubs to zero when no available connections left
 		// Updates connections to zero while setting number of contacts accordingly
 		void updateConnectionZero() {
-			_numberOfContacts = _neighbours.size();
+            _numberOfContacts = _neighbourCoordinates.size();
 			_stubs = 0;
 		}
 
@@ -44,17 +44,17 @@ namespace epinetworks {
 
 		// Returns the size of neighbours
 		std::size_t sizeNeighbour(){
-			return _neighbours.size();
+            return _neighbourCoordinates.size();
 		}
 
 		// Gets the neighbour i
-		NetworkNode& getNeighbour(const int i){
-			return *_neighbours[i];
+		int& getNeighbourCoord(const int i){
+            return _neighbourCoordinates[i];
 		}
 
 		// Sets node to be neighbour
-		void setNeighbour(NetworkNode &node){
-			_neighbours.push_back(&node);
+		void setNeighbourCoord(NetworkNode &node){
+            _neighbourCoordinates.push_back(node._coordinate);
 		}
 
 		// Gets # of contacts
@@ -69,18 +69,12 @@ namespace epinetworks {
 
 		// Checks if two nodes are already neighbours
 		bool isNeighbour(NetworkNode &potentialNeighbour) {
-			if (_neighbours.size() == 0)
+            if (_neighbourCoordinates.size() == 0)
 				return false;
 			else {
-				std::vector<int> neighbourCoordinates;
-				neighbourCoordinates.reserve(_neighbours.size());
-				for (std::size_t i = 0u; i < _neighbours.size(); ++i) {
-					NetworkNode& neighbour = *_neighbours[i];
-					neighbourCoordinates.push_back(neighbour._coordinate);
-				}
 				std::vector<int>::iterator it;
-				it = find(neighbourCoordinates.begin(), neighbourCoordinates.end(), potentialNeighbour._coordinate);
-				if (it != neighbourCoordinates.end())
+                it = find(_neighbourCoordinates.begin(), _neighbourCoordinates.end(), potentialNeighbour._coordinate);
+                if (it != _neighbourCoordinates.end())
 					return true;
 				else
 					return false;
@@ -90,7 +84,7 @@ namespace epinetworks {
 		explicit NetworkNode(int numberOfContacts) {
 			_numberOfContacts = numberOfContacts;
 			_stubs = numberOfContacts;
-			_neighbours.reserve(numberOfContacts);
+            _neighbourCoordinates.reserve(numberOfContacts);
 		}
 		std::size_t _numberOfContacts;
 		std::size_t _coordinate;
@@ -99,7 +93,7 @@ namespace epinetworks {
 		NetworkNode(const NetworkNode &) = delete;
 		NetworkNode &operator=(const NetworkNode &) = delete;
 		int _stubs;
-		std::vector<NetworkNode*> _neighbours;
+        std::vector<int> _neighbourCoordinates;
 	};
 
 }
