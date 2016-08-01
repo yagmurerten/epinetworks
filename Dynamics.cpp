@@ -8,7 +8,25 @@
 
 namespace epinetworks {
 
-    void Dynamics::transmission(Individual &focal, Infecteds &infecteds, RandomNumberGenerator &rng, double mutationSD, bool mutate)  {
+    void Dynamics::updateStates(Individual &ind, std::vector<std::vector<int>> &states){
+        states.clear();
+        states.reserve(ind.sizeNeighbour() + 1);
+        std::vector<int> coordStates;
+        coordStates.reserve(ind.sizeNeighbour() + 2);
+        coordStates = ind.getStates();
+        coordStates.push_back(ind.getCoordinate());
+        states.push_back(coordStates);
+        for (size_t i = 0; i < ind.sizeNeighbour(); ++i) {
+            std::vector<int> coordStates;
+            coordStates.reserve(ind.getNeighbour(i).sizeNeighbour() + 2);
+            coordStates = ind.getNeighbour(i).getStates();
+            coordStates.push_back(ind.getNeighbour(i).getCoordinate());
+            states.push_back(coordStates);
+        }
+    }
+
+    void Dynamics::transmission(Individual &focal, Infecteds &infecteds, RandomNumberGenerator &rng, 
+        double mutationSD, bool mutate, std::vector<std::vector<int>> &states)  {
         if (focal.sizeSusceptibleNeighbours() > 0) {
             int newInfected;
             do {
@@ -27,6 +45,7 @@ namespace epinetworks {
             }
             newInfectedNeighbour.updateSusceptibleNeigbours(-1);
             infecteds.addInfected(&newInfectedNeighbour);
+            updateStates(newInfectedNeighbour, states);
         }
     }
 

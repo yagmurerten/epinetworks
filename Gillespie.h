@@ -17,6 +17,7 @@ namespace epinetworks {
         static double rateSum(Infecteds &infecteds);
         static void selectEvent(Infecteds &infecteds, RandomNumberGenerator &rng, double mutationRate, double mutationSD, std::unique_ptr<Dynamics> &dynamics, bool evolution, bool mortality, std::vector<std::vector<int>> &states);
         static std::unique_ptr<Dynamics> createDynamics(Dynamics::DynamicsType type);
+        static void updateStates(Individual &ind, std::vector<std::vector<int>> &states);
 	private:
 		//static double getEventRate(Individual &individual);
 	};

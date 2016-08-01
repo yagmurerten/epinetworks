@@ -44,15 +44,6 @@ namespace epinetworks {
         return std::unique_ptr<Dynamics>(new DynamicsSIR);
     }
 
-    void updateStates(Individual &ind, std::vector<std::vector<int>> &states){
-        int coord = ind.getCoordinate();
-        states[coord] = ind.getStates();
-        for (size_t i = 0; i < ind.sizeNeighbour(); ++i) {
-            coord= ind.getNeighbour(i).getCoordinate();
-            states[coord] = ind.getNeighbour(i).getStates();
-        }
-    }
-
     void Gillespie::selectEvent(Infecteds &infecteds, RandomNumberGenerator &rng, double mutationRate, double mutationSD, 
         std::unique_ptr<Dynamics> &dynamics, bool evolution, bool mortality, std::vector<std::vector<int>> &states) {
         double rand = getRandomUniform(rng);
@@ -83,17 +74,17 @@ namespace epinetworks {
             if (mortality) {
             sp += mutationRate*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
             if (threshold < sp){
-                dynamics->transmission(focal, infecteds, rng, mutationSD, 1);
+                dynamics->transmission(focal, infecteds, rng, mutationSD, 1, states);
             }
             else {
                 sp += (1 - mutationRate)*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
                 if (threshold < sp) {
-                    dynamics->transmission(focal, infecteds, rng, mutationSD, 0);
+                    dynamics->transmission(focal, infecteds, rng, mutationSD, 0, states);
                 }
                 else {
                     sp += focal.getPathogen().getRecoveryRate();
                     if (threshold < sp) {
-                        dynamics->recovery(focal, infecteds, index);
+                        dynamics->recovery(focal, infecteds, index, states);
                      }
                     else {
                         sp += focal.getPathogen().getVirulence();
@@ -107,35 +98,39 @@ namespace epinetworks {
             else {
                 sp += mutationRate*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
                 if (threshold < sp){
-                    dynamics->transmission(focal, infecteds, rng, mutationSD, 1);
+                    dynamics->transmission(focal, infecteds, rng, mutationSD, 1, states);
                 }
                 else {
                     sp += (1 - mutationRate)*focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
                     if (threshold < sp) {
-                        dynamics->transmission(focal, infecteds, rng, mutationSD, 0);
+                        dynamics->transmission(focal, infecteds, rng, mutationSD, 0, states);
                     }
                     else {
                         sp += focal.getPathogen().getRecoveryRate();
                         if (threshold <= sp) {
-                            dynamics->recovery(focal, infecteds, index);
+                            dynamics->recovery(focal, infecteds, index, states);
                         }
                     }
                 }
             }
         }
+        // state updates are implemented dynamics without mutations or mortality!
         else {
             sp += focal.getPathogen().getTransmission()*focal.sizeSusceptibleNeighbours();
             if (threshold < sp){
-                dynamics->transmission(focal, infecteds, rng, mutationSD, 0);
+                dynamics->transmission(focal, infecteds, rng, mutationSD, 0, states);
+                // when transmission, states of the new infected individual and its neighbours' change
+                //updateStates(infecteds.returnIndividual(infecteds.getSizeInfected() - 1), states);
             }
             else {
                 sp += focal.getPathogen().getRecoveryRate();
                 if (threshold <= sp) {
-                    dynamics->recovery(focal, infecteds, index);
+                    dynamics->recovery(focal, infecteds, index, states);
+                    // when recovery, states of the focal individual and its neighbours' change
+                    //updateStates(focal, states);
                 }
             }
         }
-        updateStates(focal, states);
     }
        
  }

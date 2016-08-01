@@ -87,7 +87,7 @@ namespace epinetworks {
 	// Decreases or increases # of susceptible neighbours
 	void Individual::updateSusceptibleNeigbours(int update){
         updateStates();
-        for (std::size_t i = 0; i < sizeNeighbour(); ++i) {
+       for (std::size_t i = 0; i < sizeNeighbour(); ++i) {
             Individual &neighbour = getNeighbour(i);
             neighbour._susceptibleNeighbours += update;
             neighbour.updateEventRate();

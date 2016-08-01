@@ -145,11 +145,14 @@ namespace epinetworks {
 			}
 		}
 
-        static void printStates(const std::vector<std::vector<int>> &states, int replicate) {
+        static void printStates(double time, const std::vector<std::vector<int>> &states, int replicate) {
             for (std::size_t i = 0u; i < states.size(); ++i) {
-                std::ofstream outputState("STATES/state" + std::to_string(replicate) + "_" + std::to_string(i) + ".csv", std::ios_base::app);
-                for (std::size_t j = 0u; j < states[i].size(); ++j) {                
-                outputState << states[i][j] << ",";
+                int coordLoc = states[i].size() - 1;
+                int index = states[i][coordLoc];
+                std::ofstream outputState("STATES/state" + std::to_string(replicate) + "_" + std::to_string(index) + ".csv", std::ios_base::app);
+                outputState << time;
+                for (std::size_t j = 0u; j < states[i].size()-1; ++j) {                
+                    outputState << "," << states[i][j];
                 }
                 outputState << std::endl;
             }

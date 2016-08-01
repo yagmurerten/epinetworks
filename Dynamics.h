@@ -19,11 +19,15 @@ namespace epinetworks {
             SIR
         };
 
-        virtual void recovery(Individual &focal, Infecteds &infecteds, std::size_t index) = 0;
+        virtual void recovery(Individual &focal, Infecteds &infecteds, std::size_t index, std::vector<std::vector<int>> &states) = 0;
 
-        virtual void transmission(Individual &focal, Infecteds &infecteds, RandomNumberGenerator &rng, double mutationSD, bool mutate);
+        void transmission(Individual &focal, Infecteds &infecteds, RandomNumberGenerator &rng, 
+            double mutationSD, bool mutate, std::vector<std::vector<int>> &states);
 
         virtual void virulence(Individual &focal, Infecteds &infecteds, std::size_t index) = 0;
+        
+        void updateStates(Individual &ind, std::vector<std::vector<int>> &states);
+
     };
 
 	

@@ -11,7 +11,7 @@ namespace epinetworks {
     
     class DynamicsSIR : public Dynamics {
     public:
-        void recovery(Individual &focal, Infecteds &infecteds, std::size_t index);
+        void recovery(Individual &focal, Infecteds &infecteds, std::size_t index, std::vector<std::vector<int>> &states);
         void virulence(Individual &focal, Infecteds &infecteds, std::size_t index);
     };
 
