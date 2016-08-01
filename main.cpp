@@ -124,6 +124,9 @@ int main(int, char *argv[]){
 	for (std::size_t t = 0; t < network.size(); ++t) {
 		network[t].setSusceptibleNumber();
 	}
+
+    if (epinetworks::NETWORK_DEBUG)
+        return 10;
    
     std::unique_ptr<epinetworks::Dynamics> currentDynamics = epinetworks::Gillespie::createDynamics(epinetworks::DYNAMICS_TYPE);
 
@@ -170,13 +173,20 @@ int main(int, char *argv[]){
             outPutTaken = 1;
         }
         int maxIncidence = 0;
-        
+        double tau;
+        double tPrev = 0.;
+        double ratePrev = 0.;
 		do {
-            double tau = -log(epinetworks::getRandomUniform(rng)) / epinetworks::Gillespie::rateSum(infecteds);
-
+            double random = -log(epinetworks::getRandomUniform(rng));
+            double rateSum = epinetworks::Gillespie::rateSum(infecteds);
+            tau = random / rateSum;
+            if (rateSum == 0 || tau > endtime) {
+               fileLog << "ERROR in calculating tau with # infecteds: " << infecteds.getSizeInfected();
+               fileLog << " random was " << random << " rateSum was " << rateSum << std::endl;
+            }
             epinetworks::Gillespie::selectEvent(infecteds, rng, mutationRate, epinetworks::evoParameters::MUTATION_SD, currentDynamics, epinetworks::MUTATIONS, epinetworks::MORTALITY, states);
-
-				t += tau;
+            tPrev = t;
+			t += tau;
 				
                 if (epinetworks::MUTATIONS) {
                     if (static_cast<int>(round(t)) % 5 == 0) {
@@ -202,7 +212,10 @@ int main(int, char *argv[]){
                 }
 
 				if (infecteds.getSizeInfected() == 0) {
-                    fileLog << replicate << "\t" << infecteds.getSizeInfected() << "\t" << t << std::endl;
+                    if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR)
+                        fileLog << replicate << "\t" << infecteds.getSizeInfected() << "\t" << t << std::endl;
+                    else
+                        fileLog << replicate <<  " ended with " << infecteds.getSizeInfected() << " infecteds at t: " << t << std::endl;
 					//std::cout << "end of epidemics" << std::endl;
                     if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR) {
                         int finalRecovered = 0;
@@ -228,6 +241,7 @@ int main(int, char *argv[]){
             network[t].setSusceptibleNumber();
 		}
         if (t >= endtime) {
+            fileLog << "ended at: " << t << "last tau is " << tau << "previous t is " << tPrev << std::endl;
             ++succesfulRuns;
         }
         else

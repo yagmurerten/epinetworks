@@ -8,12 +8,13 @@ namespace epinetworks {
 
     //INPUT OPTIONS 
     static bool OPTION_NETWORK_INPUT = false;     
-    static bool INPUT_PARAMETERS = true;         
-    static bool MUTATIONS = false;
-    static bool MORTALITY = false;
+    static bool INPUT_PARAMETERS = false;         
+    static bool MUTATIONS = true;
+    static bool MORTALITY = true;
+    static bool NETWORK_DEBUG = true;
     //SIMULATION OPTIONS
     static const std::size_t NUMBER_OF_REPLICATES = 100;
-    static Dynamics::DynamicsType DYNAMICS_TYPE = Dynamics::DynamicsType::SIR;
+    static Dynamics::DynamicsType DYNAMICS_TYPE = Dynamics::DynamicsType::SIS;
 
 	struct SIRparameters {
 		static const double SIR_full_coef;      // SIR fully-connected
@@ -38,8 +39,8 @@ namespace epinetworks {
 	};
     
 	//DEFAULT NETWORK OPTIONS
-	static NetworkConstructor::NetworkType NETWORK_TYPE = NetworkConstructor::NetworkType::Homogeneous;
-	static double VARIANCE_K = 4;
+	static NetworkConstructor::NetworkType NETWORK_TYPE = NetworkConstructor::NetworkType::Gamma;
+	static double VARIANCE_K = 20;
 	static int NETWORK_SIZE = 10000;                 // # of individuals in the network
 
 	//DEFAULT PATHOGEN PARAMETERS
@@ -52,10 +53,10 @@ namespace epinetworks {
 	const double SISparameters::SIS_hom_coef = 0.75;
 
     const double SIRparameters::INITIAL_VIRULENCE = 0.;
-    const double SISparameters::INITIAL_VIRULENCE = 0.3;
+    const double SISparameters::INITIAL_VIRULENCE = 0.35;
 
     const double SIRparameters::ENDTIME = 1000;
-    const double SISparameters::ENDTIME = 10000;
+    const double SISparameters::ENDTIME = 25000;
 
     const double SIRparameters::TRANSMISSION = 300;
 

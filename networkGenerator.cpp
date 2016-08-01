@@ -20,7 +20,7 @@ namespace epinetworks {
     // using var as the variance in the degree distribution
     // and 3.0 as mean of the degree distribution
     void initializeNetwork(Network &network, NetworkConstructor::NetworkType type, double var, RandomNumberGenerator &rng) {
-        if (type == NetworkConstructor::NetworkType::Gamma) {
+        if (type == NetworkConstructor::NetworkType::Gamma && var != 0) {
             double beta = 3.0 / var;
             const double shapeParameter = 3.0*beta;			//alpha
             const double scaleParameter = 1.0 / beta;		//beta
@@ -44,7 +44,14 @@ namespace epinetworks {
                 network.setNode(std::unique_ptr<Individual>(new Individual(NUMBER_OF_CONTACTS)));
                 network[i].setCoordinates(i);
             }
-
+           
+        }
+        if (type == NetworkConstructor::NetworkType::Gamma && var == 0) {
+            int NUMBER_OF_CONTACTS = 4;
+            for (std::size_t i = 0; i < network.size(); ++i) {
+                network.setNode(std::unique_ptr<Individual>(new Individual(NUMBER_OF_CONTACTS)));
+                network[i].setCoordinates(i);
+            }
         }
     }
 
