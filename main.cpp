@@ -180,9 +180,16 @@ int main(int, char *argv[]){
             double random = -log(epinetworks::getRandomUniform(rng));
             double rateSum = epinetworks::Gillespie::rateSum(infecteds);
             tau = random / rateSum;
-            if (rateSum == 0 || tau > endtime) {
+            if ((rateSum == 0 || tau > endtime) && (t > 1000)) {
                fileLog << "ERROR in calculating tau with # infecteds: " << infecteds.getSizeInfected();
                fileLog << " random was " << random << " rateSum was " << rateSum << std::endl;
+               std::ofstream infectedRates("errorRatesum.csv", std::ios_base::app);
+               double newRateSum = 0.;
+               for (size_t i = 0; i < infecteds.getSizeInfected(); ++i) {
+                   newRateSum += (infecteds.returnIndividual(i)).getEventRate();
+                   infectedRates << newRateSum << "," << i << "," << infecteds.returnIndividual(i).getEventRate() << std::endl;
+                   return 1;
+               }
             }
             epinetworks::Gillespie::selectEvent(infecteds, rng, mutationRate, epinetworks::evoParameters::MUTATION_SD, currentDynamics, epinetworks::MUTATIONS, epinetworks::MORTALITY, states);
             tPrev = t;

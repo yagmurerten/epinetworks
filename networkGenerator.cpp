@@ -66,12 +66,13 @@ namespace epinetworks {
                 logParameters << "network type: fully connected" << std::endl;
             }
             else if (networkType == NetworkConstructor::NetworkType::Gamma) {
-                initializeNetwork(network, networkType, var, rng);
+                double varGamma = pow(var, 2);
+                initializeNetwork(network, networkType, varGamma, rng);
                 DEBUG_ASSERT(network.isValid());
                 NetworkConstructor::generate(network, networkType, rng);
                 DEBUG_ASSERT(network.isValid());
                 logParameters << "network type: gamma distributed" << std::endl;
-                logParameters << "variance: " << var << std::endl;
+                logParameters << "variance: " << varGamma << std::endl;
             }
             else if (networkType == NetworkConstructor::NetworkType::Homogeneous) {
                 initializeNetwork(network, networkType, var, rng);

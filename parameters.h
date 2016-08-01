@@ -8,10 +8,10 @@ namespace epinetworks {
 
     //INPUT OPTIONS 
     static bool OPTION_NETWORK_INPUT = false;     
-    static bool INPUT_PARAMETERS = false;         
+    static bool INPUT_PARAMETERS = true;         
     static bool MUTATIONS = true;
     static bool MORTALITY = true;
-    static bool NETWORK_DEBUG = true;
+    static bool NETWORK_DEBUG = false;
     //SIMULATION OPTIONS
     static const std::size_t NUMBER_OF_REPLICATES = 100;
     static Dynamics::DynamicsType DYNAMICS_TYPE = Dynamics::DynamicsType::SIS;
@@ -40,7 +40,7 @@ namespace epinetworks {
     
 	//DEFAULT NETWORK OPTIONS
 	static NetworkConstructor::NetworkType NETWORK_TYPE = NetworkConstructor::NetworkType::Gamma;
-	static double VARIANCE_K = 20;
+	static double VARIANCE_K = 4;
 	static int NETWORK_SIZE = 10000;                 // # of individuals in the network
 
 	//DEFAULT PATHOGEN PARAMETERS
