@@ -3,6 +3,7 @@
 
 #include "NetworkConstructor.h"
 #include "Dynamics.h"
+#include "print.h"
 
 namespace epinetworks {
 
@@ -90,7 +91,8 @@ namespace epinetworks {
 			coef = SIRparameters::SIR_hom_coef;
 	}
     static void parametersNoInput(double &mutationFrac, double &var, double &endtime, double &recovery, 
-        double &transmission, double &virulence, bool &mortality, bool &mutations, Dynamics::DynamicsType dynamicsType) {
+        double &transmission, double &virulence, bool &mortality, 
+        bool &mutations, Dynamics::DynamicsType dynamicsType, std::string parameterFileName) {
 
         if (dynamicsType == Dynamics::DynamicsType::SIR) {
             double fracTransmission;
@@ -118,10 +120,23 @@ namespace epinetworks {
             if (mortality)
                 virulence = epinetworks::SISparameters::INITIAL_VIRULENCE;
         }
+
+        Print::printParameter(endtime, "endtime", parameterFileName);
+        Print::printParameter(epinetworks::NETWORK_SIZE, "network size", parameterFileName);
+        Print::printParameter(recovery, "recovery rate", parameterFileName);
+        if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR) {
+            Print::printParameter(transmission, "transmission", parameterFileName);
+            Print::printParameter(transmission / recovery, "R0", parameterFileName);
+        }
+        if (mortality)
+            Print::printParameter(virulence, "initial virulence", parameterFileName);
+        if (mutations)
+            Print::printParameter(epinetworks::evoParameters::MUTATION_SD, "mutation sd", parameterFileName);
     }
 
     static void parametersInput(double &mutationFrac, double &var, double &endtime, double &recovery,
-        double &transmission, double &virulence, bool &mortality, bool &mutations, double argv1, double argv2, Dynamics::DynamicsType dynamicsType) {
+        double &transmission, double &virulence, bool &mortality, bool &mutations, 
+        double argv1, double argv2, Dynamics::DynamicsType dynamicsType, std::string parameterFileName) {
         if (dynamicsType == Dynamics::DynamicsType::SIR) {
             double fracTransmission;
             recovery = SIRparameters::RECOVERY;
@@ -148,6 +163,19 @@ namespace epinetworks {
             if (mortality)
                 virulence = epinetworks::SISparameters::INITIAL_VIRULENCE;
         }
+
+        Print::printParameter(endtime, "endtime", parameterFileName);
+        Print::printParameter(epinetworks::NETWORK_SIZE, "network size", parameterFileName);
+        Print::printParameter(recovery, "recovery rate", parameterFileName);
+        if (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR) {
+            Print::printParameter(transmission, "transmission", parameterFileName);
+            Print::printParameter(transmission / recovery, "R0", parameterFileName);
+        }
+        if (mortality)
+            Print::printParameter(virulence, "initial virulence", parameterFileName);
+        if (mutations)
+            Print::printParameter(epinetworks::evoParameters::MUTATION_SD, "mutation sd", parameterFileName);
+       
     }
 }
 

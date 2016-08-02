@@ -157,6 +157,12 @@ namespace epinetworks {
                 outputState << std::endl;
             }
         }
+
+        template <class T>
+        static void printParameter(T parameter, const char type[], std::string &fileName) {
+            std::ofstream logParameters(fileName, std::ios_base::app);
+            logParameters << type << ": " << parameter << std::endl;
+        }
 	};
 }
 #endif // PRINT_H
