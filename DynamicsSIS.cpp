@@ -11,7 +11,8 @@ namespace epinetworks {
         focal.getSusceptible();
         focal.updateSusceptibleNeigbours(1);
         infecteds.remove(index);
-        updateStates(focal, states);
+        //focal.updateStates();
+        //updateStates(focal, states);
     }
 
     // Disease induced mortality event with S replacement

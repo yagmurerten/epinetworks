@@ -109,11 +109,13 @@ namespace epinetworks {
             for (std::size_t j = 0; j < stubs; ++j) {
                 int coordContact;
                 ss2 >> coordContact;
-                NetworkNode &first = network[i];
-                NetworkNode &second = network[coordContact];
+                Individual &first = network[i];
+                Individual &second = network[coordContact];
                 if (first.isNeighbour(second) == false){
                     first.setNeighbourCoord(second);
                     second.setNeighbourCoord(first);
+                    first.setNeighbour(second);
+                    second.setNeighbour(first);
                     second.reduceStubs();
                     first.reduceStubs();
                 }

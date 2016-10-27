@@ -9,14 +9,12 @@
 
 namespace epinetworks {
 
-    class Individual;
-    class Infecteds;
-
     void DynamicsSIR::recovery(Individual &focal, Infecteds &infecteds, std::size_t index, std::vector<std::vector<int>> &states)  {
         focal.getRecovered();
         focal.updateSusceptibleNeigbours(0);
         infecteds.remove(index);
-        updateStates(focal, states);
+        //focal.updateStates();
+        //updateStates(focal, states);
     }
 
     // Disease induced mortality event with S replacement

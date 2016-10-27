@@ -45,7 +45,7 @@ namespace epinetworks {
             }
             newInfectedNeighbour.updateSusceptibleNeigbours(-1);
             infecteds.addInfected(&newInfectedNeighbour);
-            updateStates(newInfectedNeighbour, states);
+            //updateStates(newInfectedNeighbour, states);
         }
     }
 

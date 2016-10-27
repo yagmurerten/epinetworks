@@ -79,17 +79,31 @@ namespace epinetworks {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// Outputs virulence in every time step it is called
-		static void virulenceOutput(std::string filenameVirulence, double time, 
+		static void virulenceOutputWithTau(std::string filenameVirulence, double time, double tau,
 			Infecteds &infecteds){
 			std::ofstream myOutput(filenameVirulence, std::ios_base::app);
             if (time == 0.)
-                myOutput << "time, avg_virulence, sd_virulence, avg_neighbours, number_infected" << std::endl;
+                myOutput << "time,avg_virulence, sd_virulence, avg_neighbours, number_infected, tau " << std::endl;
 			myOutput << time;
             double averageVirulence = infecteds.getAverageVirulence();
             double sd = infecteds.getSDVirulence(averageVirulence);
             double averageNeighbours = infecteds.getAverageNumberNeighbour();
-			myOutput << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t" << infecteds.getSizeInfected() << std::endl;
+            myOutput << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t";
+            myOutput<< infecteds.getSizeInfected() << "\t" << tau << std::endl;
 		}
+
+        static void virulenceOutput(std::string filenameVirulence, double time,
+            Infecteds &infecteds){
+            std::ofstream myOutput(filenameVirulence, std::ios_base::app);
+            if (time == 0.)
+                myOutput << "time,avg_virulence, sd_virulence, avg_neighbours, number_infected, tau " << std::endl;
+            myOutput << time;
+            double averageVirulence = infecteds.getAverageVirulence();
+            double sd = infecteds.getSDVirulence(averageVirulence);
+            double averageNeighbours = infecteds.getAverageNumberNeighbour();
+            myOutput << "\t" << averageVirulence << "\t" << sd << "\t" << averageNeighbours << "\t";
+            myOutput << infecteds.getSizeInfected() << std::endl;
+        }
 
 		static void statusOutput(std::string filenameVirulenceStatus, Network &network){
 			std::ofstream myOutput(filenameVirulenceStatus, std::ios_base::app);
@@ -153,6 +167,18 @@ namespace epinetworks {
                 outputState << time;
                 for (std::size_t j = 0u; j < states[i].size()-1; ++j) {                
                     outputState << "," << states[i][j];
+                }
+                outputState << std::endl;
+            }
+        }
+
+        static void printStatesAll(double t, int time, int replicate, Network &network) {
+            for (std::size_t i = 0u; i < network.size(); ++i) {
+                Individual &ind = (network[i]);
+                std::ofstream outputState("STATES/state" + std::to_string(replicate) + "_" + std::to_string(i) + ".csv", std::ios_base::app);
+                outputState << t << "," << time;
+                for (std::size_t j = 0u; j < ind.getStates().size() ; ++j) {
+                    outputState << "," << ind.getStates()[j];
                 }
                 outputState << std::endl;
             }

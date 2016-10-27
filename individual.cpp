@@ -18,7 +18,7 @@ namespace epinetworks {
 		NetworkNode(numberOfContacts), _susceptibleNeighbours(numberOfContacts),
         _eventRate(0.) { 
         _states.reserve(5);
-        for (size_t i = 0u; i < numberOfContacts; ++i)
+        for (size_t i = 0u; i < numberOfContacts+1; ++i)
             _states.push_back(0);
     };
 
