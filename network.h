@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "Individual.h"
+#include "individual.h"
 
 namespace epinetworks {
 
