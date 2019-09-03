@@ -2,7 +2,7 @@
 #include "connectionPool.h"
 #include "individual.h"
 #include "network.h"
-#include "networkConstructor.h"
+#include "NetworkConstructor.h"
 #include "random.h"
 
 #include <algorithm>

@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <random>
 #include <vector>
+#include <functional>
 
 namespace epinetworks {
 
