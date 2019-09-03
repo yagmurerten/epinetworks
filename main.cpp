@@ -23,6 +23,7 @@
 #include <iostream>
 #include <memory>
 
+// determine which type of epidemic dynamics we are going to look at
 #define _SIS
 
 #ifdef _SIR
@@ -33,7 +34,10 @@
 #include "parametersSIS.h"
 #endif
 
+// this is something I added for criticality & information dynamics analysis
+// a vector that keeps track of states of an individual and its neighbours
 typedef std::vector<std::vector<int>> States;
+const bool EPITRANS = false;
 
 int main(int, char *argv[]){
     double mutationFrac = 0.;
@@ -45,19 +49,34 @@ int main(int, char *argv[]){
     double virulence = 0.;
     bool mortality = 0;
     bool mutations = 0;
+	// these are the parameters that will be assigned later depending on the type of epidemics
+	// and the parasite & dynamics we want to check out
 
     std::string parameterFileName = "parameters.txt";
     std::ofstream fileLog("outputLog.txt", std::ios_base::app);
     
-    if (!epinetworks::INPUT_PARAMETERS) {
-        epinetworks::parametersNoInput(mutationFrac, var, endtime, recovery, transmission, virulence,
-            mortality, mutations, parameterFileName);
-    } else if (epinetworks::INPUT_PARAMETERS) {
-        double argv1 = static_cast<double>(atoi(argv[1]));
-        epinetworks::parametersInputTrans(mutationFrac, var, endtime, recovery, transmission, virulence,
-            mortality, mutations, argv1, parameterFileName);
-    }
+	// if parameters are not input of the simulation, then they are hard-coded in headers
+	// parametersSIS.h and parametersSIR.h
+	// they are included above in this file
+	// I need to write a parametersInput version of this for the evolution model
+	if (!epinetworks::INPUT_PARAMETERS) {
+		epinetworks::parametersNoInput(mutationFrac, var, endtime, recovery, transmission, virulence,
+			mortality, mutations, parameterFileName);
+	}
+	else if (epinetworks::INPUT_PARAMETERS && EPITRANS) {
+		double argv1 = static_cast<double>(atoi(argv[1]));
+		epinetworks::parametersInputTrans(mutationFrac, var, endtime, recovery, transmission, virulence,
+			mortality, mutations, argv1, parameterFileName);
+	}
+	else {
+		double argv1 = static_cast<double>(atoi(argv[1]));
+		double argv2 = static_cast<double>(atoi(argv[2]));
+		epinetworks::parametersInputVir(mutationFrac, var, endtime, recovery,
+			transmission, virulence, mortality, mutations,
+			argv1, argv2, parameterFileName);
+	}
 
+	// if we allow virulence to evolve, mutation rate is determined here
     if (mutations)
         mutationRate = 1.0 / mutationFrac;
 
@@ -72,6 +91,7 @@ int main(int, char *argv[]){
 	const std::string filenameNetwork = "networkNew";
     epinetworks::Network network(epinetworks::NETWORK_SIZE);
 
+	// if we want to construct a network from scratch we use this code
     if (!epinetworks::OPTION_NETWORK_INPUT) {
         epinetworks::NetworkGenerator::networkWithoutInput(network, epinetworks::NETWORK_TYPE, var, rng, parameterFileName);
         if (epinetworks::NETWORK_TYPE != epinetworks::NetworkConstructor::NetworkType::FullyConnected){
@@ -81,6 +101,7 @@ int main(int, char *argv[]){
         }
     }   
 
+	// if we want to input the same network from a file we use this code
     if (epinetworks::OPTION_NETWORK_INPUT) {
         epinetworks::Print::printParameter("true", "option network ", parameterFileName);
         epinetworks::NetworkGenerator::inputNetwork(network, filenameNetwork);
@@ -91,6 +112,7 @@ int main(int, char *argv[]){
         epinetworks::Print::printEdgeList(filenameNetwork2, network);
 	}
 
+	// setting neighbours to be susceptible, this is required for the epitrans version
 	for (std::size_t t = 0; t < network.size(); ++t) {
 		network[t].setSusceptibleNumber();
 	}
@@ -100,6 +122,7 @@ int main(int, char *argv[]){
    
     std::unique_ptr<epinetworks::Dynamics> currentDynamics = epinetworks::Gillespie::createDynamics(epinetworks::DYNAMICS_TYPE);
 
+	// for SIR dynamics
     bool epiComplete = false;
 
     for (std::size_t replicate = 1u; replicate < epinetworks::NUMBER_OF_REPLICATES + 1; ++replicate) {
@@ -117,15 +140,18 @@ int main(int, char *argv[]){
         epinetworks::Individual &patientZero = network[i];
         if ((epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIR) || 
             (epinetworks::DYNAMICS_TYPE == epinetworks::Dynamics::DynamicsType::SIS && virulence == 0.)) {
-            epinetworks::Pathogen initialPathogen(transmission*coefficient, recovery);
+            // version with SIR dynamics or no virulence
+			epinetworks::Pathogen initialPathogen(transmission*coefficient, recovery);
             patientZero.getInfected(initialPathogen);
         } else {
+			// version with virulence-transmission trade-off & evolution
             epinetworks::Pathogen initialPathogen(virulence, coefficient, recovery);
             patientZero.getInfected(initialPathogen);
         }
        
         epinetworks::Infecteds infecteds(&patientZero, epinetworks::NETWORK_SIZE);
-        patientZero.updateSusceptibleNeigbours(-1);
+        patientZero.updateSusceptibleNeigbours(-1); 
+		// one less susceptible neighbour for the patient zero's neighbours
 		bool endEpidemics = false;
 		//std::ofstream fileExtinctions("extinctions.txt", std::ios_base::app);
         bool outPutTaken =0;
@@ -143,7 +169,7 @@ int main(int, char *argv[]){
             double randDenom;
             do {
                 randDenom = epinetworks::getRandomUniform(rng);
-            } while (randDenom == 0);
+            } while (randDenom == 0); // to make sure that random is not divided by 0
             double random = -log(randDenom);
             double rateSum = epinetworks::Gillespie::rateSum(infecteds);
             tau = random / rateSum;
@@ -165,6 +191,7 @@ int main(int, char *argv[]){
                     }
                 } else {
                     //epinetworks::Print::printStates(t, states, replicate);
+					// implicitly, this is the 'epitrans' version, I need to make it clearer
                     int time = floor(t);
                     if (time != prevTime) {
                         epinetworks::Print::virulenceOutput(filenameVirulence, t, infecteds);

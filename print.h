@@ -1,7 +1,6 @@
 #ifndef PRINT_H_INCLUDED
 #define PRINT_H_INCLUDED
 
-#include "percolationCentrality.h"
 #include "infecteds.h"
 
 #include <string>

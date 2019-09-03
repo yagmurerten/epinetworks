@@ -5,7 +5,7 @@
 #include "Dynamics.h"
 #include "print.h"
 
-#define _EPITRANS
+#define _EPIVIR
 
 namespace epinetworks {
 
@@ -14,7 +14,7 @@ namespace epinetworks {
    
     //SIMULATION OPTIONS
     static const bool NETWORK_DEBUG = false;
-    const bool OPTION_NETWORK_INPUT = true;
+    const bool OPTION_NETWORK_INPUT = false;
 
     const double full_coef = 0.003;
     const double hom_coef = 0.75;
@@ -35,13 +35,14 @@ namespace epinetworks {
 #ifdef _EPIVIR
         static NetworkConstructor::NetworkType NETWORK_TYPE = NetworkConstructor::NetworkType::Gamma;
         static const std::size_t NUMBER_OF_REPLICATES = 10000;
-        static double VARIANCE_K = 0.;
+        static double VARIANCE_K = 12.;
         const double INITIAL_VIRULENCE = 0.4;
-        const double ENDTIME = 50000.;
+        const double ENDTIME = 20000.;
         const double RECOVERY = 0.5;
-        const bool INPUT_PARAMETERS = true;
+        const bool INPUT_PARAMETERS = false;
         const bool MUTATIONS = true;
         const bool MORTALITY = true;
+		const double NO_INPUT_TRANSMISSION = 2.5;
 #endif
 
 	struct evoParameters {
