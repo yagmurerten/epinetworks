@@ -11,7 +11,7 @@
 #include "individual.h"
 #include "infecteds.h"
 #include "network.h"
-#include "NetworkGenerator.h"
+#include "networkGenerator.h"
 #include "pathogen.h"
 #include "print.h"
 
